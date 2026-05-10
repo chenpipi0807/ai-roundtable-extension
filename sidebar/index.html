@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天音 AI 创作助手</title>
+  <link rel="stylesheet" href="styles/sidebar.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部工具栏 -->
+    <header class="toolbar">
+      <div class="toolbar-left">
+        <span class="logo">🎵 天音助手</span>
+      </div>
+      <div class="toolbar-center">
+        <button class="nav-btn" id="btn-nav-create" title="跳转创作页面">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span>创作</span>
+        </button>
+        <button class="nav-btn" id="btn-nav-results" title="跳转创作结果页面">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"></path>
+            <rect x="9" y="3" width="6" height="4" rx="1"></rect>
+            <path d="M9 14l2 2 4-4"></path>
+          </svg>
+          <span>作品</span>
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <button class="toolbar-btn" id="btn-close" title="收起侧边栏">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- API 配置区（始终可见，未配置时突出显示） -->
+    <div class="api-config" id="api-config">
+      <div class="config-header" id="config-header">
+        <span class="config-title">🔑 API 配置</span>
+        <span class="config-toggle" id="config-toggle">收起 ▲</span>
+      </div>
+      <div class="config-body" id="config-body">
+        <div class="form-group">
+          <label for="api-key">DeepSeek API Key</label>
+          <div class="input-with-btn">
+            <input type="password" id="api-key" placeholder="sk-..." class="form-input" />
+            <button class="btn-sm" id="btn-toggle-key-visibility">👁</button>
+          </div>
+          <p class="form-hint">
+            在 <a href="https://platform.deepseek.com/" target="_blank">DeepSeek 开放平台</a> 获取
+          </p>
+        </div>
+        <div class="form-group">
+          <label for="model-select">模型</label>
+          <select id="model-select" class="form-input">
+            <option value="deepseek-v4-flash">deepseek-v4-flash (1M 上下文)</option>
+            <option value="deepseek-v4-pro">deepseek-v4-pro (1M 上下文)</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btn-save-settings">保存设置</button>
+          <button class="btn" id="btn-test-key">测试连接</button>
+        </div>
+        <div class="form-status" id="settings-status"></div>
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content" id="main-content">
+      <!-- 聊天面板 -->
+      <div class="chat-panel" id="chat-panel">
+        <div class="chat-messages" id="chat-messages">
+          <div class="message ai">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+              <p>你好！我是天音 AI 创作助手 🎵</p>
+              <p>直接在下方聊天输入框中描述你的创作需求，例如：</p>
+              <p>
+                • <strong>"写一首关于夏天的流行歌曲"</strong> → 生成歌词<br>
+                • <strong>"帮我起个歌名"</strong> → 生成歌曲名称<br>
+                • <strong>"写一段古风风格的描述"</strong> → 生成风格描述
+              </p>
+              <p>AI 建议会以 Split Diff 左右分栏展示在左侧页面输入框中，你可以逐段接受或拒绝。</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="selection-info" id="selection-info" style="display: none;">
+            <span class="selection-text" id="selection-text"></span>
+            <button class="selection-clear" id="selection-clear" title="清除选中">✕</button>
+          </div>
+          <textarea
+            class="chat-input"
+            id="chat-input"
+            placeholder="输入你的创作需求..."
+            rows="2"
+          ></textarea>
+          <button class="btn btn-primary send-btn" id="btn-send">发送</button>
+        </div>
+      </div>
+
+      <!-- Diff 审核视图（备用查看功能） -->
+      <div class="diff-panel" id="diff-panel" style="display: none;">
+        <div class="diff-header">
+          <div class="diff-title">
+            <span id="diff-title-text">AI 建议</span>
+            <span class="diff-badge" id="diff-badge">0 处变更</span>
+          </div>
+          <div class="diff-actions">
+            <button class="btn btn-sm btn-success" id="btn-accept-all">✅ 全部接受并应用</button>
+            <button class="btn btn-sm btn-danger" id="btn-reject-all">❌ 全部拒绝</button>
+          </div>
+        </div>
+        <div class="diff-view" id="diff-view">
+          <!-- Split Diff 由 JS 动态渲染 -->
+        </div>
+        <div class="diff-footer">
+          <button class="btn btn-sm" id="btn-apply-diff" style="display: none;">📥 仅应用已接受的变更</button>
+          <button class="btn" id="btn-back-to-chat">← 返回聊天</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 加载指示器 -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">AI 思考中...</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

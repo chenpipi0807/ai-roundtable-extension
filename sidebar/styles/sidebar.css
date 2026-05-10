@@ -1,0 +1,713 @@
+/* ============================================================
+   天音 AI 创作助手 — 侧边栏样式
+   网易云音乐配色：黑底白字红强调
+   ============================================================ */
+
+/* 重置 */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --netease-red: #c20c0c;
+  --netease-red-hover: #a00a0a;
+  --netease-red-light: #3a1a1a;
+  --netease-bg: #1a1a1a;
+  --netease-bg-secondary: #2d2d2d;
+  --netease-bg-tertiary: #3a3a3a;
+  --netease-bg-hover: #3d3d3d;
+  --netease-text: #ffffff;
+  --netease-text-secondary: #b3b3b3;
+  --netease-text-muted: #7a7a7a;
+  --netease-border: #3a3a3a;
+  --netease-border-light: #333333;
+  --netease-success: #1db954;
+  --netease-success-bg: #1a3a1a;
+  --netease-danger: #e74c3c;
+  --netease-danger-bg: #3a1a1a;
+  --netease-info-bg: #1a2a3a;
+  --netease-info: #5ba3e6;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --font-size: 13px;
+  --font-size-sm: 12px;
+  --font-size-lg: 14px;
+  --line-height: 1.6;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  color: var(--netease-text);
+  background: var(--netease-bg);
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ========== 工具栏 ========== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--netease-bg);
+  border-bottom: 1px solid var(--netease-border);
+  flex-shrink: 0;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--netease-red);
+  letter-spacing: 1px;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 4px;
+}
+
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  height: 24px;
+  border: 1px solid var(--netease-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--netease-text-secondary);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: var(--netease-bg-hover);
+  color: var(--netease-text);
+  border-color: var(--netease-red);
+}
+
+.nav-btn svg {
+  flex-shrink: 0;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--netease-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toolbar-btn:hover {
+  background: var(--netease-bg-hover);
+  color: var(--netease-text);
+}
+
+/* ========== API 配置区 ========== */
+.api-config {
+  border-bottom: 1px solid var(--netease-border);
+  background: var(--netease-bg-secondary);
+  flex-shrink: 0;
+}
+
+.api-config.config-unconfigured {
+  background: #2a1a1a;
+  border-bottom: 2px solid var(--netease-red);
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.config-header:hover {
+  background: var(--netease-bg-hover);
+}
+
+.config-title {
+  font-size: var(--font-size);
+  font-weight: 600;
+  color: var(--netease-text);
+}
+
+.config-toggle {
+  font-size: var(--font-size-sm);
+  color: var(--netease-text-muted);
+}
+
+.config-body {
+  padding: 0 14px 14px;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: var(--netease-text-secondary);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: var(--font-size);
+  border: 1px solid var(--netease-border);
+  border-radius: var(--radius-sm);
+  background: var(--netease-bg);
+  color: var(--netease-text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--netease-red);
+}
+
+.form-input::placeholder {
+  color: var(--netease-text-muted);
+}
+
+select.form-input {
+  appearance: auto;
+}
+
+.input-with-btn {
+  display: flex;
+  gap: 4px;
+}
+
+.input-with-btn .form-input {
+  flex: 1;
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--netease-border);
+  border-radius: var(--radius-sm);
+  background: var(--netease-bg);
+  color: var(--netease-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-sm:hover {
+  background: var(--netease-bg-hover);
+  color: var(--netease-text);
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--netease-text-muted);
+  margin-top: 4px;
+}
+
+.form-hint a {
+  color: var(--netease-red);
+  text-decoration: none;
+}
+
+.form-hint a:hover {
+  text-decoration: underline;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.form-status {
+  margin-top: 8px;
+  font-size: var(--font-size-sm);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  display: none;
+}
+
+.form-status.success {
+  display: block;
+  background: var(--netease-success-bg);
+  color: var(--netease-success);
+  border: 1px solid var(--netease-success);
+}
+
+.form-status.error {
+  display: block;
+  background: var(--netease-danger-bg);
+  color: var(--netease-danger);
+  border: 1px solid var(--netease-danger);
+}
+
+.form-status.info {
+  display: block;
+  background: var(--netease-info-bg);
+  color: var(--netease-info);
+  border: 1px solid var(--netease-info);
+  font-weight: 500;
+}
+
+/* ========== 主内容区 ========== */
+.main-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ========== 聊天面板 ========== */
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  display: flex;
+  gap: 8px;
+  max-width: 95%;
+}
+
+.message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.message.ai .message-avatar {
+  background: var(--netease-bg-tertiary);
+}
+
+.message.user .message-avatar {
+  background: var(--netease-red-light);
+}
+
+.message-content {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  word-break: break-word;
+}
+
+.message.ai .message-content {
+  background: var(--netease-bg-secondary);
+  border: 1px solid var(--netease-border-light);
+  color: var(--netease-text);
+}
+
+.message.user .message-content {
+  background: var(--netease-red);
+  color: white;
+}
+
+.message-content p {
+  margin-bottom: 4px;
+}
+
+.message-content p:last-child {
+  margin-bottom: 0;
+}
+
+.message-content ul {
+  padding-left: 16px;
+  margin: 4px 0;
+}
+
+.message-content li {
+  margin-bottom: 2px;
+}
+
+/* 选中文本信息栏 */
+.selection-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+  background: var(--netease-bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--netease-text-secondary);
+  overflow: hidden;
+}
+
+.selection-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.selection-clear {
+  background: none;
+  border: none;
+  color: var(--netease-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.selection-clear:hover {
+  color: var(--netease-text);
+  background: var(--netease-bg-hover);
+}
+
+/* 聊天输入区 */
+.chat-input-area {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--netease-border);
+  background: var(--netease-bg);
+  flex-shrink: 0;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: var(--font-size);
+  border: 1px solid var(--netease-border);
+  border-radius: var(--radius);
+  background: var(--netease-bg-secondary);
+  color: var(--netease-text);
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+  border-color: var(--netease-red);
+}
+
+.chat-input::placeholder {
+  color: var(--netease-text-muted);
+}
+
+.send-btn {
+  align-self: flex-end;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+/* ========== Diff 审核视图 ========== */
+.diff-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.diff-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--netease-border);
+  background: var(--netease-bg);
+  flex-shrink: 0;
+}
+
+.diff-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+  color: var(--netease-text);
+}
+
+.diff-badge {
+  font-size: var(--font-size-sm);
+  font-weight: normal;
+  color: var(--netease-text-muted);
+}
+
+.diff-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.diff-view {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  background: var(--netease-bg);
+}
+
+/* Split Diff 布局 */
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.diff-row {
+  display: flex;
+  width: 100%;
+}
+
+.diff-cell {
+  width: 50%;
+  padding: 3px 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-bottom: 1px solid var(--netease-border-light);
+  min-height: 24px;
+  color: var(--netease-text-secondary);
+}
+
+.diff-cell.old {
+  border-right: 1px solid var(--netease-border);
+}
+
+.diff-cell.equal {
+  color: var(--netease-text);
+}
+
+.diff-cell.delete {
+  background: var(--netease-danger-bg);
+  color: var(--netease-danger);
+  text-decoration: line-through;
+}
+
+.diff-cell.insert {
+  background: var(--netease-success-bg);
+  color: var(--netease-success);
+}
+
+/* Diff Chunk 操作区 */
+.diff-chunk-actions {
+  display: flex;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--netease-bg-tertiary);
+  border-bottom: 1px solid var(--netease-border);
+  align-items: center;
+}
+
+.diff-chunk-actions .chunk-label {
+  font-size: 11px;
+  color: var(--netease-text-muted);
+  margin-right: auto;
+}
+
+.diff-chunk-actions .chunk-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+  border: 1px solid var(--netease-border);
+  border-radius: 3px;
+  background: var(--netease-bg);
+  color: var(--netease-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.diff-chunk-actions .chunk-btn:hover {
+  opacity: 0.8;
+}
+
+.diff-chunk-actions .chunk-btn.accept {
+  color: var(--netease-success);
+  border-color: var(--netease-success);
+}
+
+.diff-chunk-actions .chunk-btn.accept:hover {
+  background: var(--netease-success-bg);
+}
+
+.diff-chunk-actions .chunk-btn.reject {
+  color: var(--netease-danger);
+  border-color: var(--netease-danger);
+}
+
+.diff-chunk-actions .chunk-btn.reject:hover {
+  background: var(--netease-danger-bg);
+}
+
+.diff-chunk-actions .chunk-btn.accepted {
+  background: var(--netease-success-bg);
+  color: var(--netease-success);
+  border-color: var(--netease-success);
+  opacity: 0.6;
+  cursor: default;
+}
+
+.diff-chunk-actions .chunk-btn.rejected {
+  background: var(--netease-danger-bg);
+  color: var(--netease-danger);
+  border-color: var(--netease-danger);
+  opacity: 0.6;
+  cursor: default;
+}
+
+.diff-footer {
+  padding: 8px 14px;
+  border-top: 1px solid var(--netease-border);
+  background: var(--netease-bg);
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ========== 加载指示器 ========== */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(26, 26, 26, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--netease-border);
+  border-top-color: var(--netease-red);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 12px;
+  font-size: var(--font-size);
+  color: var(--netease-text-secondary);
+}
+
+/* ========== 按钮通用 ========== */
+.btn {
+  padding: 6px 14px;
+  font-size: var(--font-size);
+  border: 1px solid var(--netease-border);
+  border-radius: var(--radius-sm);
+  background: var(--netease-bg);
+  color: var(--netease-text);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.btn:hover {
+  background: var(--netease-bg-hover);
+}
+
+.btn-primary {
+  background: var(--netease-red);
+  color: white;
+  border-color: var(--netease-red);
+}
+
+.btn-primary:hover {
+  background: var(--netease-red-hover);
+}
+
+.btn-success {
+  background: var(--netease-red);
+  color: #fff;
+  border-color: var(--netease-red);
+  font-weight: 600;
+}
+
+.btn-success:hover {
+  background: var(--netease-red-hover);
+}
+
+.btn-danger {
+  color: var(--netease-danger);
+  border-color: var(--netease-danger);
+}
+
+.btn-danger:hover {
+  background: var(--netease-danger-bg);
+}
+
+/* ========== 滚动条 ========== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

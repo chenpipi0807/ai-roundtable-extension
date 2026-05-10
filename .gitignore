@@ -1,0 +1,8 @@
+node_modules/
+package-lock.json
+*.log
+.DS_Store
+网易天音AI写歌.html
+网易天音AI写歌_files/
+plans/
+
