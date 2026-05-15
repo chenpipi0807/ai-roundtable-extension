@@ -563,7 +563,7 @@
         '*'
       );
 
-      // 30 秒超时
+      // 120 秒超时
       setTimeout(() => {
         if (!resolved) {
           window.removeEventListener('message', handler);
@@ -573,7 +573,7 @@
           if (onDone) onDone(null);
           resolve(null);
         }
-      }, 60000);
+      }, 120000);
     });
   }
 
