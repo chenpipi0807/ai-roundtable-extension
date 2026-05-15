@@ -260,6 +260,10 @@ async function createCodeMirrorEditor(inputElement, options = {}) {
   const extensions = [
     basicSetup,
     neteaseTheme(),
+    // 注册 diff 高亮扩展（内联 diff 依赖此 StateField）
+    ...(window.__tianyinDiffOverlay && window.__tianyinDiffOverlay.getHighlightExtension
+      ? [window.__tianyinDiffOverlay.getHighlightExtension(cm).highlightField]
+      : []),
     placeholderExt,
     syncExt,
     ...selectionListeners,

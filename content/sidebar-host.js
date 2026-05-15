@@ -269,10 +269,6 @@
           type: MESSAGE_TYPE.APPLY_TO_INPUT + '_done',
           payload: { success: true, inputType },
         });
-        // 触发左侧版本历史自动保存
-        document.dispatchEvent(new CustomEvent('tianyin-version-autosave', {
-          detail: { label: `AI 修改·${new Date().toLocaleTimeString('zh', { hour: '2-digit', minute: '2-digit' })}` },
-        }));
         break;
       }
 

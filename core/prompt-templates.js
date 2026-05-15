@@ -43,23 +43,25 @@ function buildSystemPrompt(context) {
 请根据用户的创作意图，生成高质量、有韵律感、情感真挚的内容。
 
 当前歌曲风格: ${styles}
-${contextSummary}${lockConstraint}
+${contextSummary}${lockConstraint}${targetFieldsNote(context)}
 输出要求:
 - 直接给出完整内容，不要添加额外解释
 - 严格按照用户问题中指定的格式输出
 - 保持与原文相同的行数结构（如果是对已有内容的修改）
-- 如果是完整歌曲创作（同时生成风格描述、歌词、歌曲名称），请使用以下严格格式输出，每部分用明确的标记分隔，标记单独占一行：
+- 如果是多字段生成（同时生成风格描述、歌词、歌曲名称），请使用 JSON 格式输出，键名分别为 songIdea（风格描述）、lyrics（歌词）、songName（歌曲名称）。JSON 中的换行符保持原样（\\n），不要使用真实换行打断 JSON 结构。重要：确保输出为合法 JSON，不要添加 markdown 代码块标记（\`\`\`json）。
+- 如果只生成歌词，每句歌词末尾必须添加标点符号（。，！？等），确保断句清晰，不要通篇无标点。
+ 
+重要：如果某部分已有内容，在其基础上优化或保持一致性；如果某部分为空，需要全新创作。`;
+}
 
-=== 风格描述 ===
-[对歌曲风格的详细描述，50-200字]
-
-=== 歌词 ===
-[完整的歌词正文，按段落分行]
-
-=== 歌曲名称 ===
-[建议的歌曲名称]
-
-重要：请根据"已有内容状态"判断哪些部分需要生成。如果某部分已有内容，可以在其基础上优化或保持一致性；如果某部分为空，则需要全新创作。`;
+/**
+ * 生成 targetFields 相关提示
+ */
+function targetFieldsNote(context) {
+  if (!context.targetFields || context.targetFields.length === 0) return '';
+  if (context.targetFields.length >= 3) return '';
+  const labels = context.targetFields.map(f => FIELD_LABEL_MAP[f] || f).join('、');
+  return `\n本次仅需生成/修改: ${labels}（不要改动其他字段）`;
 }
 
 /**
@@ -126,30 +128,33 @@ function buildCompleteCreatePrompt(context, userInput = '') {
     contextNote += `\n需要生成的部分: ${missingParts.join('、')}`;
   }
 
-  return `请根据以下描述，完成一首完整的歌曲创作。
+  // 根据 targetFields 确定需要生成的字段
+  const target = context.targetFields && context.targetFields.length > 0
+    ? context.targetFields
+    : [INPUT_TYPE.SONG_IDEA, INPUT_TYPE.LYRICS, INPUT_TYPE.SONG_NAME];
+  const needIdea = target.includes(INPUT_TYPE.SONG_IDEA);
+  const needLyrics = target.includes(INPUT_TYPE.LYRICS);
+  const needName = target.includes(INPUT_TYPE.SONG_NAME);
+
+  return `请根据以下描述，完成歌曲创作。
 
 风格: ${styleStr}
 创作想法: ${songIdea || '(由用户直接描述)'}
 ${contextNote}
 ${extra}
 
-请严格按照以下格式输出，每部分用明确的标记分隔，标记单独占一行：
+请严格按照 JSON 格式输出，键名分别为 songIdea（风格描述）、lyrics（歌词）、songName（歌曲名称）。只输出纯 JSON，不要加 \`\`\`json 标记。JSON 中的换行使用 \\n 转义，不要插入真实换行打断 JSON 结构。
+只需包含以下字段：
+${needIdea ? '- songIdea: 风格描述（50-200字）\n' : ''}${needLyrics ? '- lyrics: 歌词正文（每句必须带标点符号）\n' : ''}${needName ? '- songName: 歌曲名称\n' : ''}
 
-=== 风格描述 ===
-[对歌曲风格的详细描述，50-200字，包括情感基调、节奏特点、乐器搭配等]
-
-=== 歌词 ===
-[完整的歌词正文，按段落分行，每段之间空一行]
-
-=== 歌曲名称 ===
-[建议的歌曲名称，1个即可]
+示例格式：
+{"songIdea":"一首温暖的流行歌曲，...","lyrics":"第一句歌词。\\n第二句歌词。","songName":"歌名"}
 
 注意：
-1. 风格描述要具体、有画面感，能指导后续的音乐制作
-2. 歌词要有韵律感和情感深度
-3. 歌曲名称要简洁有力，与歌词主题契合
-4. 三个部分缺一不可
-5. 如果某部分已有内容，请在其基础上优化或保持一致性；如果某部分需要生成，请全新创作`;
+1. 输出必须是合法 JSON，键名严格为 songIdea、lyrics、songName
+2. 歌词每句末尾必须有标点（。，！？），确保断句清晰
+3. JSON 中的换行符必须用 \\n 表示，不能用真实换行
+${!needIdea && songIdea ? `4. 风格描述已有内容，不要输出 songIdea\n` : ''}${!needLyrics && lyrics ? `${!needIdea && songIdea ? '5' : '4'}. 歌词已有内容，不要输出 lyrics\n` : ''}${!needName && songName ? `${(!needIdea && songIdea) || (!needLyrics && lyrics) ? '6' : '4'}. 歌曲名称已有内容，不要输出 songName\n` : ''}5. 如果某部分已有内容，在其基础上优化或保持一致性；如果某部分需要生成，请全新创作`;
 }
 
 /**
@@ -179,7 +184,7 @@ function buildLyricsPrompt(actionType, context, userInput = '') {
 ${lyrics || '(无内容)'}
 ${extra}
 
-请直接输出润色后的完整歌词。`,
+请直接输出润色后的完整歌词。每句末尾必须添加标点符号（。，！？等）。`,
 
     [ACTION_TYPE.REWRITE]: `请用不同的表达方式重写以下歌词，保持主题不变。
 
@@ -189,7 +194,7 @@ ${extra}
 ${lyrics || '(无内容)'}
 ${extra}
 
-请直接输出重写后的完整歌词。`,
+请直接输出重写后的完整歌词。每句末尾必须添加标点符号（。，！？等）。`,
 
     [ACTION_TYPE.CONTINUE]: `请根据已有内容续写歌词，保持风格一致。
 
@@ -199,7 +204,7 @@ ${extra}
 ${lyrics || '(无内容)'}
 ${extra}
 
-请直接输出续写后的完整歌词（包含已有内容 + 续写部分）。`,
+请直接输出续写后的完整歌词（包含已有内容 + 续写部分）。每句末尾必须添加标点符号（。，！？等）。`,
 
     [ACTION_TYPE.GENERATE]: `请根据以下描述创作歌词。
 
@@ -207,7 +212,7 @@ ${extra}
 歌曲想法: ${songIdea || '(无)'}${contextNote}
 ${extra}
 
-请直接输出创作的完整歌词。`,
+请直接输出创作的完整歌词。每句末尾必须添加标点符号（。，！？等）。`,
   };
 
   return templates[actionType] || templates[ACTION_TYPE.GENERATE];

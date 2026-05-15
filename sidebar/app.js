@@ -306,6 +306,11 @@
     selectionInfo: $('selection-info'),
     selectionText: $('selection-text'),
     selectionClear: $('selection-clear'),
+    // 目标字段复选框
+    chkAll: $('chk-all'),
+    chkIdea: $('chk-idea'),
+    chkLyrics: $('chk-lyrics'),
+    chkName: $('chk-name'),
     btnNavCreate: $('btn-nav-create'),
     btnNavResults: $('btn-nav-results'),
     btnNewChat: $('btn-new-chat'),
@@ -319,6 +324,8 @@
   async function init() {
     await loadSettings();
     bindEvents();
+    initCheckboxes();
+    syncCheckboxesWithContext({}); // 默认勾选全部
     window.addEventListener('message', handleParentMessage);
 
     // 检查是否已配置 API Key
@@ -411,6 +418,7 @@
         [MESSAGE_TYPE.GET_SETTINGS]: MESSAGE_TYPE.GET_SETTINGS + '_result',
         [MESSAGE_TYPE.AI_GENERATE]: MESSAGE_TYPE.AI_RESULT,
         [MESSAGE_TYPE.APPLY_TO_INPUT]: MESSAGE_TYPE.APPLY_TO_INPUT + '_done',
+        [MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT]: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT + '_done',
         [MESSAGE_TYPE.GET_PAGE_CONTEXT]: MESSAGE_TYPE.PAGE_CONTEXT,
       };
       const expectedResponseType = responseTypeMap[message.type];
@@ -752,6 +760,13 @@
       type: MESSAGE_TYPE.APPLY_TO_INPUT,
       payload: { inputType: state.currentInputType, content: acceptedText },
     });
+    // 在编辑器中显示内联 diff 高亮
+    const original = state.originalContent || '';
+    const appliedDiff = computeDiff(original, acceptedText);
+    await sendToParent({
+      type: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT,
+      payload: { inputType: state.currentInputType, diffResult: appliedDiff },
+    });
     addAIMessage(`✅ 已成功应用到「${INPUT_LABELS[state.currentInputType]}」`);
     showChatPanel();
   }
@@ -785,6 +800,50 @@
     showChatPanel();
   }
 
+  // ========== 目标字段复选框 ==========
+  function initCheckboxes() {
+    // 全部 ↔ 单项互斥
+    dom.chkAll.addEventListener('change', () => {
+      if (dom.chkAll.checked) {
+        dom.chkIdea.checked = false;
+        dom.chkLyrics.checked = false;
+        dom.chkName.checked = false;
+      }
+    });
+    [dom.chkIdea, dom.chkLyrics, dom.chkName].forEach((chk) => {
+      chk.addEventListener('change', () => {
+        if (chk.checked) dom.chkAll.checked = false;
+      });
+    });
+  }
+
+  /**
+   * 读取复选框状态，返回目标字段集合
+   */
+  function getCheckedFields() {
+    if (dom.chkAll.checked) {
+      return { all: true, fields: [INPUT_TYPE.SONG_IDEA, INPUT_TYPE.LYRICS, INPUT_TYPE.SONG_NAME] };
+    }
+    const fields = [];
+    if (dom.chkIdea.checked) fields.push(INPUT_TYPE.SONG_IDEA);
+    if (dom.chkLyrics.checked) fields.push(INPUT_TYPE.LYRICS);
+    if (dom.chkName.checked) fields.push(INPUT_TYPE.SONG_NAME);
+    return { all: false, fields };
+  }
+
+  /**
+   * 根据页面上下文智能设置复选框默认状态
+   * 规则：所有字段都为空 → 勾选「全部」；否则勾选有内容的字段
+   */
+  function syncCheckboxesWithContext(context) {
+    const safeCtx = context || {};
+    const empty = !safeCtx.songIdea && !safeCtx.lyrics && !safeCtx.songName;
+    dom.chkAll.checked = empty;
+    dom.chkIdea.checked = !empty && !!safeCtx.songIdea;
+    dom.chkLyrics.checked = !empty && !!safeCtx.lyrics;
+    dom.chkName.checked = !empty && !!safeCtx.songName;
+  }
+
   // ========== 聊天功能 ==========
   async function sendChatMessage() {
     const text = dom.chatInput.value.trim();
@@ -799,19 +858,19 @@
     state.pageContext = context;
 
     const safeContext = context || { styles: [], songIdea: '', lyrics: '', songName: '' };
-    const systemPrompt = buildSystemPrompt(safeContext);
-    let intent = detectIntent(text, safeContext);
+    // 根据复选框确定目标字段，替代动态意图检测
+    const checked = getCheckedFields();
+    const targetFields = checked.all || checked.fields.length === 0
+      ? [INPUT_TYPE.SONG_IDEA, INPUT_TYPE.LYRICS, INPUT_TYPE.SONG_NAME]
+      : checked.fields;
+    const systemPrompt = buildSystemPrompt({ ...safeContext, targetFields });
+    let intent = { inputType: targetFields[0], actionType: ACTION_TYPE.GENERATE }; // 默认
 
-    // 安全兜底
-    if (!intent || !intent.inputType) {
-      intent = { inputType: INPUT_TYPE.LYRICS, actionType: ACTION_TYPE.GENERATE };
-    }
-
-    // ===== 完整创作模式：同时生成风格描述 + 歌词 + 歌曲名称 =====
-    if (intent.actionType === ACTION_TYPE.COMPLETE_CREATE) {
-      const { system, user } = buildPrompt('complete', ACTION_TYPE.COMPLETE_CREATE, safeContext, text);
+    // ===== 多字段/全部模式：生成选中的多个字段 =====
+    if (targetFields.length >= 2) {
+      const { system, user } = buildPrompt('complete', ACTION_TYPE.COMPLETE_CREATE, { ...safeContext, targetFields }, text);
       
-      const partKeys = [INPUT_TYPE.SONG_IDEA, INPUT_TYPE.LYRICS, INPUT_TYPE.SONG_NAME];
+      const partKeys = targetFields;
       const partLabels = {
         [INPUT_TYPE.SONG_IDEA]: '开始创作（风格描述）',
         [INPUT_TYPE.LYRICS]: '歌词',
@@ -896,8 +955,9 @@
     }
 
     // ===== 普通模式：生成单个部分（流式 + 多轮） =====
-    const { system: sysPrompt, user: userMsg } = intent.inputType && intent.actionType
-      ? buildPrompt(intent.inputType, intent.actionType, safeContext, text)
+    const fieldType = targetFields[0];
+    const { system: sysPrompt, user: userMsg } = fieldType
+      ? buildPrompt(fieldType, ACTION_TYPE.GENERATE, { ...safeContext, targetFields }, text)
       : { system: systemPrompt, user: text };
 
     const historyForNormal = state.chatHistory.slice(0, -1);
@@ -924,12 +984,12 @@
         state.chatHistory.push({ role: 'assistant', content: full });
         addAIMessage(full);
 
-        if (intent.inputType && safeContext) {
-          const originalContent = safeContext[intent.inputType] || '';
-          const label = INPUT_LABELS[intent.inputType] || intent.inputType;
-          await sendToParent({ type: MESSAGE_TYPE.APPLY_TO_INPUT, payload: { inputType: intent.inputType, content: full } });
+        if (fieldType && safeContext) {
+          const originalContent = safeContext[fieldType] || '';
+          const label = INPUT_LABELS[fieldType] || fieldType;
+          await sendToParent({ type: MESSAGE_TYPE.APPLY_TO_INPUT, payload: { inputType: fieldType, content: full } });
           const diffResult = computeDiff(originalContent, full);
-          await sendToParent({ type: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT, payload: { inputType: intent.inputType, diffResult } });
+          await sendToParent({ type: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT, payload: { inputType: fieldType, diffResult } });
           addAIMessage(`✅ 已应用到「${label}」，请在左侧编辑器中查看。`);
         }
       },
@@ -951,6 +1011,28 @@
   function parseCompleteCreateContent(content) {
     if (!content) return null;
     const trimmed = content.trim();
+
+    // ===== 格式 0: JSON 格式（最优先） =====
+    let jsonStr = trimmed;
+    const jsonBlock = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (jsonBlock) jsonStr = jsonBlock[1].trim();
+    
+    try {
+      const parsed = JSON.parse(jsonStr);
+      const result = {};
+      if (parsed.songIdea || parsed['风格描述'] || parsed.idea) {
+        result[INPUT_TYPE.SONG_IDEA] = (parsed.songIdea || parsed['风格描述'] || parsed.idea || '').replace(/\\n/g, '\n');
+      }
+      if (parsed.lyrics || parsed['歌词']) {
+        result[INPUT_TYPE.LYRICS] = (parsed.lyrics || parsed['歌词'] || '').replace(/\\n/g, '\n');
+      }
+      if (parsed.songName || parsed['歌曲名称'] || parsed.title || parsed.name) {
+        result[INPUT_TYPE.SONG_NAME] = parsed.songName || parsed['歌曲名称'] || parsed.title || parsed.name || '';
+      }
+      if (Object.keys(result).length >= 1) {
+        return result;
+      }
+    } catch (_) { /* 回退到原有格式 */ }
 
     // ===== 格式 1: ===标记=== 格式（最优先） =====
     // 使用更健壮的正则：用 [\s\S] 匹配任意字符，用正向先行断言匹配下一个标记或结尾

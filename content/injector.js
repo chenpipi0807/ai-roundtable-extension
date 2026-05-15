@@ -14,6 +14,8 @@
 
   /** 编辑器实例映射：inputType → { view, container } */
   const editorInstances = {};
+  /** 应用 diff 前的原始内容：inputType → string */
+  const originalContents = {};
 
   /** 高亮清理函数映射：inputType → cleanup function */
   const highlightCleanups = {};
@@ -188,8 +190,16 @@
   async function applyDiffHighlightToEditor(inputType, diffResult) {
     const view = getEditorView(inputType);
     if (!view) return;
+    // 保存当前内容作为原始版本（首次标记 diff 时）
+    if (!originalContents[inputType]) {
+      originalContents[inputType] = view.state.doc.toString();
+    }
 
     // 清除旧高亮
+    // 移除旧 diff 工具栏
+    const oldBar = containerFor(inputType)?.querySelector('.tianyin-diff-toolbar');
+    if (oldBar) oldBar.remove();
+
     if (highlightCleanups[inputType]) {
       highlightCleanups[inputType]();
       delete highlightCleanups[inputType];
@@ -201,6 +211,8 @@
     // 应用新高亮
     if (window.__tianyinDiffOverlay) {
       const cleanup = window.__tianyinDiffOverlay.applyDiffHighlight(view, diffResult, cm);
+      // 注入 diff 工具栏
+      injectDiffToolbar(inputType);
       highlightCleanups[inputType] = cleanup;
     }
   }
@@ -210,10 +222,49 @@
    * @param {string} inputType
    */
   async function clearDiffHighlightFromEditor(inputType) {
+    // 移除 diff 工具栏
+    const bar = containerFor(inputType)?.querySelector('.tianyin-diff-toolbar');
+    if (bar) bar.remove();
     if (highlightCleanups[inputType]) {
       highlightCleanups[inputType]();
       delete highlightCleanups[inputType];
+      // 同时清除原始内容记录
+      delete originalContents[inputType];
     }
+  }
+
+  function containerFor(inputType) {
+    return editorInstances[inputType]?.container || null;
+  }
+
+  function acceptDiff(inputType) {
+    clearDiffHighlightFromEditor(inputType);
+  }
+
+  function rejectDiff(inputType) {
+    const original = originalContents[inputType];
+    if (original !== undefined) {
+      setEditorContent(inputType, original);
+    }
+    clearDiffHighlightFromEditor(inputType);
+  }
+
+  function injectDiffToolbar(inputType) {
+    const container = containerFor(inputType);
+    if (!container || container.querySelector('.tianyin-diff-toolbar')) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'tianyin-diff-toolbar';
+    bar.innerHTML = '<button class="tianyin-diff-accept" title="接受所有变更">✅</button><button class="tianyin-diff-reject" title="拒绝并恢复原文">❌</button>';
+    bar.querySelector('.tianyin-diff-accept').addEventListener('click', (e) => {
+      e.stopPropagation();
+      acceptDiff(inputType);
+    });
+    bar.querySelector('.tianyin-diff-reject').addEventListener('click', (e) => {
+      e.stopPropagation();
+      rejectDiff(inputType);
+    });
+    container.appendChild(bar);
   }
 
   /**
@@ -263,7 +314,7 @@
   };
 
   /**
-   * 在 CodeMirror 容器右上角注入锁定按钮
+   * 在 CodeMirror 容器注入锁定按钮和保存版本按钮
    * @param {HTMLElement} container - tianyin-cm-editor 容器
    * @param {string} inputType
    */

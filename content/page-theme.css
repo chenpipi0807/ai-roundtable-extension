@@ -64,6 +64,16 @@ main > div > div {
   border-radius: 0 !important;
 }
 
+/* ─── 覆盖所有白底元素 ─── */
+main div, main section, main article, main aside,
+main [class*="card"], main [class*="panel"], main [class*="box"], main [class*="wrap"], main [class*="container"],
+main [class*="ant-"], main [class*="list"], main [class*="item"],
+main [role="dialog"], main [class*="dialog"], main [class*="modal"],
+main [class*="popover"], main [class*="dropdown"], main [class*="menu"] {
+  background-color: #252526 !important;
+  color: #cccccc !important;
+}
+
 /* ─── 强制所有文字可见（高对比度覆盖） ─── */
 main *,
 body > div:not(#tianyin-sidebar-host) > * {
@@ -140,6 +150,44 @@ main select {
 /* ─── 分割线/边框 ─── */
 main hr { border-color: #3c3c3c !important; }
 
+/* ─── 按钮 — 恢复可辨识外观（暗色主题下与文字区分） ─── */
+main button,
+main [role="button"],
+main a[class*="btn"],
+main [class*="ant-btn"] {
+  background: #3c3c3c !important;
+  color: #cccccc !important;
+  border: 1px solid #555 !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  padding: 4px 12px !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  transition: background 0.15s, border-color 0.15s !important;
+}
+
+main button:hover,
+main [role="button"]:hover,
+main [class*="ant-btn"]:hover {
+  background: #505050 !important;
+  border-color: #007acc !important;
+}
+
+/* 主按钮 / 提交按钮 */
+main button[type="submit"],
+main [class*="primary"],
+main [class*="ant-btn-primary"] {
+  background: #007acc !important;
+  color: #ffffff !important;
+  border-color: #007acc !important;
+}
+
+main button[type="submit"]:hover,
+main [class*="primary"]:hover,
+main [class*="ant-btn-primary"]:hover {
+  background: #1a8ad4 !important;
+}
+
 /* ─── 滚动条 ─── */
 main ::-webkit-scrollbar { width: 6px; height: 6px; }
 main ::-webkit-scrollbar-track { background: #1e1e1e; }
@@ -198,6 +246,36 @@ main ::-webkit-scrollbar-thumb:hover { background: #5a5a5a; }
   letter-spacing: 0.3px;
   pointer-events: none;
   z-index: 15;
+}
+
+/* diff 工具栏（Accept/Reject） */
+.tianyin-diff-toolbar {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  z-index: 20;
+  display: flex;
+  gap: 4px;
+}
+
+.tianyin-diff-toolbar button {
+  width: 24px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.85);
+  border: 1px solid #555;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #9d9d9d;
+  font-size: 11px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.tianyin-diff-accept:hover { border-color: #43a047; color: #81c784; background: rgba(67,160,71,.15); }
+.tianyin-diff-reject:hover { border-color: #e53935; color: #ef5350; background: rgba(229,57,53,.15); }
 }
 
 /* ─── 不影响我们的侧边栏 ─── */

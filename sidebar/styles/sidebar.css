@@ -617,6 +617,30 @@ select.form-input {
   height: 26px;
 }
 
+/* 目标字段多选复选框 */
+.target-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.field-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.field-checkbox input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
 /* ============================================================
    Diff 审核视图
    ============================================================ */

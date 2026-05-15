@@ -120,9 +120,15 @@
           <textarea
             class="chat-input"
             id="chat-input"
-            placeholder="输入你的创作需求，或点击「模板」快速开始..."
+            placeholder="输入你的创作需求..."
             rows="3"
           ></textarea>
+          <div class="target-fields" id="target-fields">
+            <label class="field-checkbox"><input type="checkbox" id="chk-all" checked> 全部</label>
+            <label class="field-checkbox"><input type="checkbox" id="chk-idea"> 风格</label>
+            <label class="field-checkbox"><input type="checkbox" id="chk-lyrics"> 歌词</label>
+            <label class="field-checkbox"><input type="checkbox" id="chk-name"> 标题</label>
+          </div>
           <div class="chat-input-footer">
             <button class="btn btn-sm" id="btn-template" title="快捷模板">模板</button>
             <button class="btn btn-primary send-btn" id="btn-send">发送</button>

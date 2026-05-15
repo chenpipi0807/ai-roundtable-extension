@@ -133,12 +133,12 @@
         color: #9d9d9d;
       }
       .add-btn {
-        width: 20px; height: 20px;
+        width: auto; height: 22px;
         border: 1px solid #555; border-radius: 2px;
         background: transparent; color: #9d9d9d;
         cursor: pointer; font-size: 15px; line-height: 1;
-        display: flex; align-items: center; justify-content: center;
-        padding: 0;
+        display: inline-flex; align-items: center; gap: 2px;
+        padding: 0 6px; font-size: 11px; white-space: nowrap;
       }
       .add-btn:hover { border-color: #007acc; color: #4daafc; background: rgba(0,122,204,.1); }
       /* list */
@@ -166,7 +166,7 @@
     panel.innerHTML = `
       <div class="header">
         <span class="title">版本历史</span>
-        <button class="add-btn" id="ver-add" title="保存当前版本">+</button>
+        <button class="add-btn" id="ver-add" title="保存当前所有字段为一个版本">💾 保存</button>
       </div>
       <div id="ver-list"></div>
     `;
