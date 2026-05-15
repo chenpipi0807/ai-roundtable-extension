@@ -151,10 +151,10 @@ main select {
 main hr { border-color: #3c3c3c !important; }
 
 /* ─── 按钮 — 恢复可辨识外观（暗色主题下与文字区分） ─── */
-main button,
-main [role="button"],
-main a[class*="btn"],
-main [class*="ant-btn"] {
+main button:not(.ty-dl-btn),
+main [role="button"]:not(.ty-dl-btn),
+main a[class*="btn"]:not(.ty-dl-btn),
+main [class*="ant-btn"]:not(.ty-dl-btn) {
   background: #3c3c3c !important;
   color: #cccccc !important;
   border: 1px solid #555 !important;
@@ -166,9 +166,9 @@ main [class*="ant-btn"] {
   transition: background 0.15s, border-color 0.15s !important;
 }
 
-main button:hover,
-main [role="button"]:hover,
-main [class*="ant-btn"]:hover {
+main button:not(.ty-dl-btn):hover,
+main [role="button"]:not(.ty-dl-btn):hover,
+main [class*="ant-btn"]:not(.ty-dl-btn):hover {
   background: #505050 !important;
   border-color: #007acc !important;
 }
@@ -186,6 +186,11 @@ main button[type="submit"]:hover,
 main [class*="primary"]:hover,
 main [class*="ant-btn-primary"]:hover {
   background: #1a8ad4 !important;
+}
+
+/* 下载按钮不受通用按钮样式覆盖 */
+main button.ty-dl-btn:hover {
+  filter: brightness(1.15);
 }
 
 /* ─── 滚动条 ─── */
