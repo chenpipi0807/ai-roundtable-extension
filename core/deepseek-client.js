@@ -57,6 +57,9 @@ class DeepSeekClient {
       max_tokens: options.maxTokens ?? DEEPSEEK_CONFIG.MAX_TOKENS,
       stream: false,
     };
+    if (options.responseFormat) {
+      body.response_format = { type: options.responseFormat };
+    }
 
     try {
       const response = await fetch(url, {

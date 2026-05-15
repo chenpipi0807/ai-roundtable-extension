@@ -132,6 +132,9 @@ const messageHandlers = {
       max_tokens: maxTokens ?? DEEPSEEK_CONFIG.MAX_TOKENS,
       stream: false,
     };
+    if (message.payload.responseFormat) {
+      body.response_format = { type: message.payload.responseFormat };
+    }
 
     try {
       const response = await fetch(url, {
@@ -229,6 +232,9 @@ chrome.runtime.onConnect.addListener((port) => {
       max_tokens: maxTokens ?? DEEPSEEK_CONFIG.MAX_TOKENS,
       stream: true,
     };
+    if (message.payload.responseFormat) {
+      body.response_format = { type: message.payload.responseFormat };
+    }
 
     try {
       const response = await fetch(url, {

@@ -577,7 +577,7 @@ ${contextSummary}${lockConstraint}
    * @param {Function} onDone - 完成时的回调 (fullContent) => void，fullContent=null 表示出错
    * @returns {Promise<string|null>} 完整内容或 null
    */
-  function generateAIStream(systemPrompt, userPrompt, onChunk, onDone, chatHistory = []) {
+  function generateAIStream(systemPrompt, userPrompt, onChunk, onDone, chatHistory = [], responseFormat = null) {
     return new Promise((resolve) => {
       showLoading();
       let fullContent = '';
@@ -625,7 +625,7 @@ ${contextSummary}${lockConstraint}
       window.parent.postMessage(
         {
           type: MESSAGE_TYPE.AI_GENERATE_STREAM,
-          payload: { systemPrompt, userPrompt, messages },
+          payload: { systemPrompt, userPrompt, messages, responseFormat },
         },
         '*'
       );
@@ -1015,7 +1015,7 @@ ${contextSummary}${lockConstraint}
           // 记录 AI 回复到 chatHistory
           state.chatHistory.push({ role: 'assistant', content: fullContent || summary });
         }
-      , historyForStream);
+      , historyForStream, 'json_object');
 
       if (!aiContent) return;
       return;
