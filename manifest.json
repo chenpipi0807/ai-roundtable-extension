@@ -11,17 +11,30 @@
   },
   "permissions": [
     "storage",
-    "sidePanel"
+    "sidePanel",
+    "downloads"
   ],
   "host_permissions": [
     "https://music.163.com/st/tianyin/*",
-    "https://api.deepseek.com/*"
+    "https://api.deepseek.com/*",
+    "https://music-ugc-ai-song.music.126.net/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
     "type": "module"
   },
   "content_scripts": [
+    {
+      "matches": ["https://music.163.com/st/tianyin/my-creation*"],
+      "js": ["content/my-creation-main.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://music.163.com/st/tianyin/my-creation*"],
+      "js": ["content/my-creation-downloader.js"],
+      "run_at": "document_idle"
+    },
     {
       "matches": ["https://music.163.com/st/tianyin/*"],
       "js": [
@@ -30,14 +43,16 @@
         "core/diff.js",
         "core/prompt-templates.js",
         "core/deepseek-client.js",
+        "lib/codemirror/codemirror-bundle.js",
         "content/codemirror-host.js",
         "content/selection-bridge.js",
         "content/diff-overlay.js",
         "content/injector.js",
-        "content/sidebar-host.js"
+        "content/sidebar-host.js",
+        "content/version-sidebar.js"
       ],
       "css": [
-        "sidebar/styles/sidebar.css"
+        "content/page-theme.css"
       ],
       "run_at": "document_idle"
     }

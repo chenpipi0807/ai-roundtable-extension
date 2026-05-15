@@ -181,11 +181,15 @@ function getStyleTags() {
  * @returns {Object}
  */
 function getPageContext() {
+  const lockedFields = window.__tianyinInjector
+    ? window.__tianyinInjector.getLockedFields()
+    : [];
   return {
     songIdea: getInputValue(INPUT_TYPE.SONG_IDEA),
     lyrics: getInputValue(INPUT_TYPE.LYRICS),
     songName: getInputValue(INPUT_TYPE.SONG_NAME),
     styles: getStyleTags(),
+    lockedFields,
     url: window.location.href,
   };
 }

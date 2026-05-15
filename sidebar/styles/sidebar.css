@@ -1,9 +1,7 @@
 /* ============================================================
-   天音 AI 创作助手 — 侧边栏样式
-   网易云音乐配色：黑底白字红强调
+   天音 AI 创作助手 — VS Code 风格侧边栏样式
    ============================================================ */
 
-/* 重置 */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -11,39 +9,51 @@
 }
 
 :root {
-  --netease-red: #c20c0c;
-  --netease-red-hover: #a00a0a;
-  --netease-red-light: #3a1a1a;
-  --netease-bg: #1a1a1a;
-  --netease-bg-secondary: #2d2d2d;
-  --netease-bg-tertiary: #3a3a3a;
-  --netease-bg-hover: #3d3d3d;
-  --netease-text: #ffffff;
-  --netease-text-secondary: #b3b3b3;
-  --netease-text-muted: #7a7a7a;
-  --netease-border: #3a3a3a;
-  --netease-border-light: #333333;
-  --netease-success: #1db954;
-  --netease-success-bg: #1a3a1a;
-  --netease-danger: #e74c3c;
-  --netease-danger-bg: #3a1a1a;
-  --netease-info-bg: #1a2a3a;
-  --netease-info: #5ba3e6;
-  --radius: 8px;
-  --radius-sm: 4px;
-  --font-size: 13px;
-  --font-size-sm: 12px;
-  --font-size-lg: 14px;
-  --line-height: 1.6;
+  /* VS Code Dark+ 色板 */
+  --bg:              #1e1e1e;
+  --bg-sidebar:      #252526;
+  --bg-panel:        #2d2d2d;
+  --bg-hover:        #2a2d2e;
+  --bg-active:       #04395e;
+  --bg-input:        #3c3c3c;
+
+  --text:            #cccccc;
+  --text-secondary:  #9d9d9d;
+  --text-muted:      #6d6d6d;
+  --text-link:       #4daafc;
+
+  --accent:          #007acc;
+  --accent-hover:    #1177bb;
+  --accent-light:    rgba(0,122,204,0.15);
+
+  --border:          #3c3c3c;
+  --border-subtle:   #2d2d2d;
+  --focus-border:    #007fd4;
+  --input-border:    #555;
+
+  --success:         #4ec9b0;
+  --success-bg:      rgba(78,201,176,0.12);
+  --danger:          #f14c4c;
+  --danger-bg:       rgba(241,76,76,0.12);
+  --info:            #75beff;
+  --info-bg:         rgba(117,190,255,0.12);
+  --warning:         #cca700;
+
+  --radius:          2px;
+  --font-size:       13px;
+  --font-size-sm:    12px;
+  --font-size-xs:    11px;
+  --line-height:     1.5;
 }
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+               'Microsoft YaHei', sans-serif;
   font-size: var(--font-size);
   line-height: var(--line-height);
-  color: var(--netease-text);
-  background: var(--netease-bg);
+  color: var(--text);
+  background: var(--bg);
   overflow: hidden;
 }
 
@@ -53,33 +63,33 @@ html, body {
   height: 100vh;
 }
 
-/* ========== 工具栏 ========== */
+/* ============================================================
+   面板标题栏 (VS Code panel header)
+   ============================================================ */
 .toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: var(--netease-bg);
-  border-bottom: 1px solid var(--netease-border);
+  height: 35px;
+  padding: 0 4px 0 12px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  gap: 4px;
 }
 
 .toolbar-left {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
 .logo {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xs);
   font-weight: 700;
-  color: var(--netease-red);
-  letter-spacing: 1px;
-}
-
-.toolbar-right {
-  display: flex;
-  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .toolbar-center {
@@ -88,30 +98,36 @@ html, body {
   gap: 2px;
 }
 
+.toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
 .nav-btn {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   padding: 3px 8px;
-  height: 24px;
-  border: 1px solid var(--netease-border);
-  border-radius: var(--radius-sm);
+  height: 22px;
+  border: none;
+  border-radius: var(--radius);
   background: transparent;
-  color: var(--netease-text-secondary);
+  color: var(--text-secondary);
   cursor: pointer;
-  font-size: var(--font-size-sm);
-  transition: all 0.15s;
+  font-size: var(--font-size-xs);
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
   white-space: nowrap;
 }
 
 .nav-btn:hover {
-  background: var(--netease-bg-hover);
-  color: var(--netease-text);
-  border-color: var(--netease-red);
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
 .nav-btn svg {
   flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .toolbar-btn {
@@ -121,93 +137,105 @@ html, body {
   width: 28px;
   height: 28px;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: transparent;
-  color: var(--netease-text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.1s, color 0.1s;
 }
 
 .toolbar-btn:hover {
-  background: var(--netease-bg-hover);
-  color: var(--netease-text);
+  background: var(--bg-hover);
+  color: var(--text);
 }
 
-/* ========== API 配置区 ========== */
+/* ============================================================
+   API 配置区 (VS Code collapsible section)
+   ============================================================ */
 .api-config {
-  border-bottom: 1px solid var(--netease-border);
-  background: var(--netease-bg-secondary);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
   flex-shrink: 0;
 }
 
 .api-config.config-unconfigured {
-  background: #2a1a1a;
-  border-bottom: 2px solid var(--netease-red);
+  border-bottom: 1px solid var(--danger);
 }
 
 .config-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
+  gap: 6px;
+  padding: 5px 8px 5px 6px;
   cursor: pointer;
   user-select: none;
-  transition: background 0.15s;
+  transition: background 0.1s;
 }
 
 .config-header:hover {
-  background: var(--netease-bg-hover);
+  background: var(--bg-hover);
+}
+
+/* 折叠箭头 — 沿用 VS Code 的 › 样式 */
+.config-toggle {
+  font-size: 10px;
+  color: var(--text-muted);
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .config-title {
-  font-size: var(--font-size);
-  font-weight: 600;
-  color: var(--netease-text);
-}
-
-.config-toggle {
-  font-size: var(--font-size-sm);
-  color: var(--netease-text-muted);
+  flex: 1;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
 }
 
 .config-body {
-  padding: 0 14px 14px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .form-group label {
   display: block;
-  font-size: var(--font-size-sm);
-  color: var(--netease-text-secondary);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
   margin-bottom: 4px;
-  font-weight: 500;
 }
 
 .form-input {
   width: 100%;
-  padding: 8px 10px;
-  font-size: var(--font-size);
-  border: 1px solid var(--netease-border);
-  border-radius: var(--radius-sm);
-  background: var(--netease-bg);
-  color: var(--netease-text);
+  padding: 5px 8px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  color: var(--text);
   outline: none;
-  transition: border-color 0.2s;
+  font-family: inherit;
+  transition: border-color 0.1s;
 }
 
 .form-input:focus {
-  border-color: var(--netease-red);
+  border-color: var(--focus-border);
+  outline: 1px solid var(--focus-border);
+  outline-offset: -1px;
 }
 
 .form-input::placeholder {
-  color: var(--netease-text-muted);
+  color: var(--text-muted);
 }
 
 select.form-input {
   appearance: auto;
+  cursor: pointer;
 }
 
 .input-with-btn {
@@ -222,27 +250,30 @@ select.form-input {
 .btn-sm {
   padding: 4px 8px;
   font-size: var(--font-size-sm);
-  border: 1px solid var(--netease-border);
-  border-radius: var(--radius-sm);
-  background: var(--netease-bg);
-  color: var(--netease-text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
 }
 
 .btn-sm:hover {
-  background: var(--netease-bg-hover);
-  color: var(--netease-text);
+  background: var(--bg-hover);
+  color: var(--text);
+  border-color: var(--text-muted);
 }
 
 .form-hint {
   font-size: 11px;
-  color: var(--netease-text-muted);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
 .form-hint a {
-  color: var(--netease-red);
+  color: var(--text-link);
   text-decoration: none;
 }
 
@@ -252,48 +283,52 @@ select.form-input {
 
 .form-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .form-status {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: var(--font-size-sm);
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  border-radius: var(--radius);
   display: none;
 }
 
 .form-status.success {
   display: block;
-  background: var(--netease-success-bg);
-  color: var(--netease-success);
-  border: 1px solid var(--netease-success);
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success);
 }
 
 .form-status.error {
   display: block;
-  background: var(--netease-danger-bg);
-  color: var(--netease-danger);
-  border: 1px solid var(--netease-danger);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger);
 }
 
 .form-status.info {
   display: block;
-  background: var(--netease-info-bg);
-  color: var(--netease-info);
-  border: 1px solid var(--netease-info);
-  font-weight: 500;
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info);
+  font-weight: 600;
 }
 
-/* ========== 主内容区 ========== */
+/* ============================================================
+   主内容区
+   ============================================================ */
 .main-content {
   flex: 1;
   overflow: hidden;
   position: relative;
 }
 
-/* ========== 聊天面板 ========== */
+/* ============================================================
+   聊天面板
+   ============================================================ */
 .chat-panel {
   display: flex;
   flex-direction: column;
@@ -303,59 +338,69 @@ select.form-input {
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .message {
   display: flex;
-  gap: 8px;
-  max-width: 95%;
+  gap: 6px;
+  max-width: 100%;
 }
 
 .message.user {
   align-self: flex-end;
   flex-direction: row-reverse;
+  max-width: 88%;
 }
 
 .message-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 11px;
   flex-shrink: 0;
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  margin-top: 2px;
 }
 
 .message.ai .message-avatar {
-  background: var(--netease-bg-tertiary);
+  background: var(--bg-panel);
+  color: var(--accent);
+  border-color: var(--border);
 }
 
 .message.user .message-avatar {
-  background: var(--netease-red-light);
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
 }
 
 .message-content {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: var(--radius);
-  font-size: var(--font-size);
-  line-height: var(--line-height);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
   word-break: break-word;
 }
 
 .message.ai .message-content {
-  background: var(--netease-bg-secondary);
-  border: 1px solid var(--netease-border-light);
-  color: var(--netease-text);
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .message.user .message-content {
-  background: var(--netease-red);
-  color: white;
+  background: var(--bg-active);
+  border: 1px solid var(--accent);
+  color: var(--text);
 }
 
 .message-content p {
@@ -364,6 +409,11 @@ select.form-input {
 
 .message-content p:last-child {
   margin-bottom: 0;
+}
+
+.message-content strong {
+  color: var(--text);
+  font-weight: 600;
 }
 
 .message-content ul {
@@ -375,17 +425,20 @@ select.form-input {
   margin-bottom: 2px;
 }
 
-/* 选中文本信息栏 */
+/* ============================================================
+   选中文本信息条
+   ============================================================ */
 .selection-info {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   margin-bottom: 4px;
-  background: var(--netease-bg-tertiary);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  color: var(--netease-text-secondary);
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  color: var(--info);
   overflow: hidden;
 }
 
@@ -394,65 +447,179 @@ select.form-input {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: default;
 }
 
 .selection-clear {
   background: none;
   border: none;
-  color: var(--netease-text-muted);
+  color: var(--text-muted);
   cursor: pointer;
-  font-size: 12px;
-  padding: 2px 4px;
-  border-radius: 2px;
+  font-size: 11px;
+  padding: 1px 3px;
+  border-radius: var(--radius);
   flex-shrink: 0;
 }
 
 .selection-clear:hover {
-  color: var(--netease-text);
-  background: var(--netease-bg-hover);
+  color: var(--text);
+  background: var(--bg-hover);
 }
 
-/* 聊天输入区 */
-.chat-input-area {
+/* ============================================================
+   快捷模板面板
+   ============================================================ */
+.template-panel {
+  border-top: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+  max-height: 220px;
+  overflow: hidden;
   display: flex;
-  gap: 8px;
-  padding: 10px 14px;
-  border-top: 1px solid var(--netease-border);
-  background: var(--netease-bg);
+  flex-direction: column;
+}
+
+.template-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
-.chat-input {
+.tmpl-tab {
   flex: 1;
-  padding: 8px 10px;
-  font-size: var(--font-size);
-  border: 1px solid var(--netease-border);
+  padding: 5px 0;
+  font-size: var(--font-size-xs);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.tmpl-tab:hover { color: var(--text-secondary); }
+
+.tmpl-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.template-list {
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tmpl-btn {
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--netease-bg-secondary);
-  color: var(--netease-text);
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.4;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+
+.tmpl-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.tmpl-btn-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  margin-bottom: 1px;
+}
+
+.tmpl-btn-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   聊天输入区
+   ============================================================ */
+.chat-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 8px 8px;
+  border-top: none;
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+}
+
+/* 顶部拖拽手柄 — 向上拖拽扩大输入框 */
+.chat-textarea-resize-handle {
+  height: 8px;
+  margin: 0 -8px;
+  cursor: ns-resize;
+  background: transparent;
+  border-top: 1px solid var(--border);
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+  transition: border-bottom-color 0.15s;
+  user-select: none;
+}
+.chat-textarea-resize-handle:hover,
+.chat-textarea-resize-handle.dragging {
+  border-bottom-color: var(--accent);
+}
+
+.chat-input {
+  width: 100%;
+  min-height: 60px;
+  max-height: 60vh;
+  padding: 6px 8px;
+  font-size: var(--font-size);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  color: var(--text);
   outline: none;
   resize: none;
   font-family: inherit;
   line-height: 1.5;
-  transition: border-color 0.2s;
+  transition: border-color 0.1s;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .chat-input:focus {
-  border-color: var(--netease-red);
+  border-color: var(--focus-border);
+  outline: 1px solid var(--focus-border);
+  outline-offset: -1px;
 }
 
 .chat-input::placeholder {
-  color: var(--netease-text-muted);
+  color: var(--text-muted);
+}
+
+.chat-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
 }
 
 .send-btn {
-  align-self: flex-end;
-  padding: 8px 16px;
+  padding: 4px 14px;
   white-space: nowrap;
+  height: 26px;
 }
 
-/* ========== Diff 审核视图 ========== */
+/* ============================================================
+   Diff 审核视图
+   ============================================================ */
 .diff-panel {
   display: flex;
   flex-direction: column;
@@ -460,9 +627,9 @@ select.form-input {
 }
 
 .diff-header {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--netease-border);
-  background: var(--netease-bg);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
   flex-shrink: 0;
 }
 
@@ -472,14 +639,18 @@ select.form-input {
   gap: 8px;
   margin-bottom: 8px;
   font-weight: 600;
-  font-size: var(--font-size-lg);
-  color: var(--netease-text);
+  font-size: var(--font-size);
+  color: var(--text);
 }
 
 .diff-badge {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: normal;
-  color: var(--netease-text-muted);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 10px;
 }
 
 .diff-actions {
@@ -492,13 +663,13 @@ select.form-input {
   flex: 1;
   overflow-y: auto;
   padding: 0;
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', 'Courier New', monospace;
   font-size: var(--font-size-sm);
   line-height: 1.6;
-  background: var(--netease-bg);
+  background: var(--bg);
 }
 
-/* Split Diff 布局 */
+/* Split Diff */
 .diff-table {
   width: 100%;
   border-collapse: collapse;
@@ -511,116 +682,119 @@ select.form-input {
 
 .diff-cell {
   width: 50%;
-  padding: 3px 10px;
+  padding: 2px 8px;
   white-space: pre-wrap;
   word-break: break-word;
-  border-bottom: 1px solid var(--netease-border-light);
-  min-height: 24px;
-  color: var(--netease-text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 22px;
+  color: var(--text-secondary);
 }
 
 .diff-cell.old {
-  border-right: 1px solid var(--netease-border);
+  border-right: 1px solid var(--border);
 }
 
 .diff-cell.equal {
-  color: var(--netease-text);
+  color: var(--text);
 }
 
 .diff-cell.delete {
-  background: var(--netease-danger-bg);
-  color: var(--netease-danger);
+  background: var(--danger-bg);
+  color: var(--danger);
   text-decoration: line-through;
 }
 
 .diff-cell.insert {
-  background: var(--netease-success-bg);
-  color: var(--netease-success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
-/* Diff Chunk 操作区 */
+/* Diff Chunk Actions */
 .diff-chunk-actions {
   display: flex;
   gap: 4px;
-  padding: 4px 10px;
-  background: var(--netease-bg-tertiary);
-  border-bottom: 1px solid var(--netease-border);
+  padding: 3px 8px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
   align-items: center;
 }
 
 .diff-chunk-actions .chunk-label {
-  font-size: 11px;
-  color: var(--netease-text-muted);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
   margin-right: auto;
 }
 
 .diff-chunk-actions .chunk-btn {
-  padding: 2px 8px;
-  font-size: 11px;
-  border: 1px solid var(--netease-border);
-  border-radius: 3px;
-  background: var(--netease-bg);
-  color: var(--netease-text-secondary);
+  padding: 1px 8px;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  font-family: inherit;
+  transition: background 0.1s;
 }
 
 .diff-chunk-actions .chunk-btn:hover {
-  opacity: 0.8;
+  background: var(--bg-hover);
 }
 
 .diff-chunk-actions .chunk-btn.accept {
-  color: var(--netease-success);
-  border-color: var(--netease-success);
+  color: var(--success);
+  border-color: var(--success);
 }
 
 .diff-chunk-actions .chunk-btn.accept:hover {
-  background: var(--netease-success-bg);
+  background: var(--success-bg);
 }
 
 .diff-chunk-actions .chunk-btn.reject {
-  color: var(--netease-danger);
-  border-color: var(--netease-danger);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .diff-chunk-actions .chunk-btn.reject:hover {
-  background: var(--netease-danger-bg);
+  background: var(--danger-bg);
 }
 
 .diff-chunk-actions .chunk-btn.accepted {
-  background: var(--netease-success-bg);
-  color: var(--netease-success);
-  border-color: var(--netease-success);
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success);
   opacity: 0.6;
   cursor: default;
 }
 
 .diff-chunk-actions .chunk-btn.rejected {
-  background: var(--netease-danger-bg);
-  color: var(--netease-danger);
-  border-color: var(--netease-danger);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
   opacity: 0.6;
   cursor: default;
 }
 
 .diff-footer {
-  padding: 8px 14px;
-  border-top: 1px solid var(--netease-border);
-  background: var(--netease-bg);
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-sidebar);
   flex-shrink: 0;
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-/* ========== 加载指示器 ========== */
+/* ============================================================
+   加载指示器
+   ============================================================ */
 .loading-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(26, 26, 26, 0.9);
+  background: rgba(30, 30, 30, 0.88);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -629,12 +803,12 @@ select.form-input {
 }
 
 .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--netease-border);
-  border-top-color: var(--netease-red);
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
@@ -642,61 +816,71 @@ select.form-input {
 }
 
 .loading-text {
-  margin-top: 12px;
-  font-size: var(--font-size);
-  color: var(--netease-text-secondary);
+  margin-top: 10px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
 }
 
-/* ========== 按钮通用 ========== */
+/* ============================================================
+   通用按钮
+   ============================================================ */
 .btn {
-  padding: 6px 14px;
-  font-size: var(--font-size);
-  border: 1px solid var(--netease-border);
-  border-radius: var(--radius-sm);
-  background: var(--netease-bg);
-  color: var(--netease-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  height: 26px;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  color: var(--text);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.1s, border-color 0.1s;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .btn:hover {
-  background: var(--netease-bg-hover);
+  background: var(--bg-hover);
+  border-color: var(--text-muted);
 }
 
 .btn-primary {
-  background: var(--netease-red);
-  color: white;
-  border-color: var(--netease-red);
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 .btn-primary:hover {
-  background: var(--netease-red-hover);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .btn-success {
-  background: var(--netease-red);
-  color: #fff;
-  border-color: var(--netease-red);
-  font-weight: 600;
+  color: var(--success);
+  border-color: var(--success);
 }
 
 .btn-success:hover {
-  background: var(--netease-red-hover);
+  background: var(--success-bg);
 }
 
 .btn-danger {
-  color: var(--netease-danger);
-  border-color: var(--netease-danger);
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .btn-danger:hover {
-  background: var(--netease-danger-bg);
+  background: var(--danger-bg);
 }
 
-/* ========== 滚动条 ========== */
+/* ============================================================
+   滚动条
+   ============================================================ */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -704,10 +888,10 @@ select.form-input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #555;
+  background: #424242;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #777;
+  background: #5a5a5a;
 }

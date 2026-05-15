@@ -7,12 +7,17 @@
  * @param {Object} context - 页面上下文
  * @returns {string}
  */
+const FIELD_LABEL_MAP = {
+  songIdea: '风格描述',
+  lyrics: '歌词',
+  songName: '歌曲名称',
+};
+
 function buildSystemPrompt(context) {
   const styles = context.styles && context.styles.length > 0
     ? context.styles.join('、')
     : '未指定';
 
-  // 检查哪些部分已有内容
   const hasIdea = context.songIdea && context.songIdea.trim();
   const hasLyrics = context.lyrics && context.lyrics.trim();
   const hasName = context.songName && context.songName.trim();
@@ -28,11 +33,17 @@ function buildSystemPrompt(context) {
     else contextSummary += '- 歌曲名称: 空（需要生成）\n';
   }
 
+  // 锁定字段约束
+  const locked = (context.lockedFields || []).filter((f) => FIELD_LABEL_MAP[f]);
+  const lockConstraint = locked.length > 0
+    ? `\n⚠️ 以下字段已被用户锁定，【严禁修改，必须原样输出其现有内容】：${locked.map((f) => FIELD_LABEL_MAP[f]).join('、')}\n`
+    : '';
+
   return `你是一位资深音乐创作助手，专注于协助用户创作中文歌词、歌曲概念和歌曲名称。
 请根据用户的创作意图，生成高质量、有韵律感、情感真挚的内容。
 
 当前歌曲风格: ${styles}
-${contextSummary}
+${contextSummary}${lockConstraint}
 输出要求:
 - 直接给出完整内容，不要添加额外解释
 - 严格按照用户问题中指定的格式输出

@@ -55,12 +55,46 @@
     collapseBar.appendChild(barContent);
     shadow.appendChild(collapseBar);
 
+    // 左侧拖拽调宽手柄
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'tianyin-sidebar-resize-handle';
+    panel.appendChild(resizeHandle);
+
     // 创建 iframe 加载侧边栏 UI
     sidebarIframe = document.createElement('iframe');
     sidebarIframe.className = 'tianyin-sidebar-iframe';
     sidebarIframe.src = chrome.runtime.getURL('sidebar/index.html');
     sidebarIframe.allow = 'clipboard-read; clipboard-write';
     panel.appendChild(sidebarIframe);
+
+    // 拖拽逻辑：向左拖拽扩大侧边栏
+    let currentSidebarWidth = SIDEBAR_WIDTH;
+    resizeHandle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = panel.offsetWidth;
+      resizeHandle.classList.add('dragging');
+      // 拖拽期间禁止 iframe 接管鼠标事件
+      sidebarIframe.style.pointerEvents = 'none';
+      // 拖拽时禁用 transition，避免卡顿
+      panel.style.transition = 'none';
+
+      const onMove = (ev) => {
+        const delta = startX - ev.clientX;
+        currentSidebarWidth = Math.min(900, Math.max(320, startWidth + delta));
+        panel.style.width = currentSidebarWidth + 'px';
+        document.body.style.paddingRight = (currentSidebarWidth + 8) + 'px';
+      };
+      const onUp = () => {
+        resizeHandle.classList.remove('dragging');
+        sidebarIframe.style.pointerEvents = '';
+        panel.style.transition = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
 
     shadow.appendChild(panel);
     document.body.appendChild(sidebarEl);
@@ -217,12 +251,17 @@
         }
         break;
 
-      case MESSAGE_TYPE.APPLY_TO_INPUT:
-        // 将内容应用到页面输入框
+      case MESSAGE_TYPE.APPLY_TO_INPUT: {
         const { inputType, content } = message.payload;
-        // 1. 更新原生输入框（触发 React 事件）
+        // 字段已锁定则跳过
+        if (window.__tianyinInjector && window.__tianyinInjector.isFieldLocked(inputType)) {
+          postMessageToIframe({
+            type: MESSAGE_TYPE.APPLY_TO_INPUT + '_done',
+            payload: { success: false, inputType, reason: 'locked' },
+          });
+          break;
+        }
         setInputValue(inputType, content);
-        // 2. 更新 CodeMirror 编辑器（如果有）
         if (window.__tianyinInjector) {
           window.__tianyinInjector.setEditorContent(inputType, content);
         }
@@ -230,11 +269,23 @@
           type: MESSAGE_TYPE.APPLY_TO_INPUT + '_done',
           payload: { success: true, inputType },
         });
+        // 触发左侧版本历史自动保存
+        document.dispatchEvent(new CustomEvent('tianyin-version-autosave', {
+          detail: { label: `AI 修改·${new Date().toLocaleTimeString('zh', { hour: '2-digit', minute: '2-digit' })}` },
+        }));
         break;
+      }
 
-      case MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT:
-        // 在左侧 CodeMirror 编辑器中显示 inline diff 高亮
+      case MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT: {
         const { inputType: hlInputType, diffResult } = message.payload;
+        // 锁定字段不显示 diff
+        if (window.__tianyinInjector && window.__tianyinInjector.isFieldLocked(hlInputType)) {
+          postMessageToIframe({
+            type: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT + '_done',
+            payload: { success: false, inputType: hlInputType, reason: 'locked' },
+          });
+          break;
+        }
         if (window.__tianyinInjector) {
           window.__tianyinInjector.applyDiffHighlightToEditor(hlInputType, diffResult);
         }
@@ -243,6 +294,7 @@
           payload: { success: true, inputType: hlInputType },
         });
         break;
+      }
 
       case MESSAGE_TYPE.GET_SETTINGS:
         // 获取设置
@@ -403,6 +455,22 @@
       }
       .tianyin-sidebar-panel.expanded {
         right: 0;
+      }
+      /* 左侧拖拽调宽手柄 */
+      .tianyin-sidebar-resize-handle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        cursor: ew-resize;
+        z-index: 10;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      .tianyin-sidebar-resize-handle:hover,
+      .tianyin-sidebar-resize-handle.dragging {
+        background: rgba(0, 122, 204, 0.45);
       }
       .tianyin-sidebar-iframe {
         width: 100%;

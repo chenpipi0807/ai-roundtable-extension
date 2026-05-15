@@ -308,6 +308,11 @@
     selectionClear: $('selection-clear'),
     btnNavCreate: $('btn-nav-create'),
     btnNavResults: $('btn-nav-results'),
+    btnNewChat: $('btn-new-chat'),
+    btnTemplate: $('btn-template'),
+    templatePanel: $('template-panel'),
+    templateTabs: $('template-tabs'),
+    templateList: $('template-list'),
   };
 
   // ========== 初始化 ==========
@@ -322,14 +327,14 @@
       // 未配置时保持展开并显示提示
       state.configExpanded = true;
       dom.configBody.style.display = 'block';
-      dom.configToggle.textContent = '收起 ▲';
+      dom.configToggle.textContent = '▼';
       dom.apiConfig.classList.add('config-unconfigured');
-      showSettingsStatus('请先配置 DeepSeek API Key 🚀', 'info');
+      showSettingsStatus('请先配置 DeepSeek API Key', 'info');
     } else {
       // 已配置则默认折叠
       state.configExpanded = false;
       dom.configBody.style.display = 'none';
-      dom.configToggle.textContent = '展开 ▼';
+      dom.configToggle.textContent = '▶';
     }
 
     console.log('[天音助手] 侧边栏已初始化');
@@ -497,7 +502,7 @@
    * @param {Function} onDone - 完成时的回调 (fullContent) => void，fullContent=null 表示出错
    * @returns {Promise<string|null>} 完整内容或 null
    */
-  function generateAIStream(systemPrompt, userPrompt, onChunk, onDone) {
+  function generateAIStream(systemPrompt, userPrompt, onChunk, onDone, chatHistory = []) {
     return new Promise((resolve) => {
       showLoading();
       let fullContent = '';
@@ -535,11 +540,17 @@
 
       window.addEventListener('message', handler);
 
-      // 发送流式请求到 parent（sidebar-host 会建立 Port 连接）
+      // 构建多轮 messages 数组（system + history + 本轮 user）
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...chatHistory,
+        { role: 'user', content: userPrompt },
+      ];
+
       window.parent.postMessage(
         {
           type: MESSAGE_TYPE.AI_GENERATE_STREAM,
-          payload: { systemPrompt, userPrompt },
+          payload: { systemPrompt, userPrompt, messages },
         },
         '*'
       );
@@ -781,6 +792,9 @@
     dom.chatInput.value = '';
     addUserMessage(text);
 
+    // 记录用户消息到 chatHistory（多轮）
+    state.chatHistory.push({ role: 'user', content: text });
+
     const context = await sendToParent({ type: MESSAGE_TYPE.GET_PAGE_CONTEXT });
     state.pageContext = context;
 
@@ -807,6 +821,9 @@
       // 创建一个临时的 AI 消息元素，用于显示流式内容
       let streamMsgEl = null;
       let streamText = '';
+
+      // 传入当前轮次之前的历史（最后一条是本轮 user，已通过 userPrompt 传入，不重复）
+      const historyForStream = state.chatHistory.slice(0, -1);
 
       const aiContent = await generateAIStream(system, user,
         // onChunk: 在侧边栏中逐步显示流式内容
@@ -867,45 +884,59 @@
             Promise.all(writeTasks);
           }
 
-          addAIMessage(`✅ 已生成并应用到 ${summaryParts.join('、')}，请在左侧编辑器中查看和修改。绿色=新增行，红色=删除行。`);
+          const summary = `✅ 已生成并应用到 ${summaryParts.join('、')}`;
+          addAIMessage(summary + '，请在左侧编辑器中查看和修改。绿色=新增行，红色=删除行。');
+          // 记录 AI 回复到 chatHistory
+          state.chatHistory.push({ role: 'assistant', content: fullContent || summary });
         }
-      );
+      , historyForStream);
 
       if (!aiContent) return;
       return;
     }
 
-    // ===== 普通模式：生成单个部分 =====
-    let userPrompt = text;
-    if (intent.inputType && intent.actionType) {
-      const { system, user } = buildPrompt(intent.inputType, intent.actionType, safeContext, text);
-      userPrompt = user;
-    }
+    // ===== 普通模式：生成单个部分（流式 + 多轮） =====
+    const { system: sysPrompt, user: userMsg } = intent.inputType && intent.actionType
+      ? buildPrompt(intent.inputType, intent.actionType, safeContext, text)
+      : { system: systemPrompt, user: text };
 
-    const aiContent = await generateAI(systemPrompt, userPrompt);
-    if (!aiContent) return;
+    const historyForNormal = state.chatHistory.slice(0, -1);
+    let streamEl = null;
+    let streamFull = '';
 
-    addAIMessage(aiContent);
+    const normalContent = await generateAIStream(
+      sysPrompt, userMsg,
+      (chunk, full) => {
+        streamFull = full;
+        if (!streamEl) {
+          streamEl = document.createElement('div');
+          streamEl.className = 'ai-message streaming';
+          dom.chatMessages.appendChild(streamEl);
+        }
+        streamEl.innerHTML = escapeHtml(streamFull).replace(/\n/g, '<br>');
+        dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
+      },
+      async (full) => {
+        if (streamEl && streamEl.parentNode) streamEl.parentNode.removeChild(streamEl);
+        if (!full) return;
 
-    if (intent.inputType && safeContext) {
-      const originalContent = safeContext[intent.inputType] || '';
-      const label = INPUT_LABELS[intent.inputType] || intent.inputType;
+        // 记录 AI 回复
+        state.chatHistory.push({ role: 'assistant', content: full });
+        addAIMessage(full);
 
-      // 直接写入左侧 CodeMirror 编辑器
-      await sendToParent({
-        type: MESSAGE_TYPE.APPLY_TO_INPUT,
-        payload: { inputType: intent.inputType, content: aiContent },
-      });
+        if (intent.inputType && safeContext) {
+          const originalContent = safeContext[intent.inputType] || '';
+          const label = INPUT_LABELS[intent.inputType] || intent.inputType;
+          await sendToParent({ type: MESSAGE_TYPE.APPLY_TO_INPUT, payload: { inputType: intent.inputType, content: full } });
+          const diffResult = computeDiff(originalContent, full);
+          await sendToParent({ type: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT, payload: { inputType: intent.inputType, diffResult } });
+          addAIMessage(`✅ 已应用到「${label}」，请在左侧编辑器中查看。`);
+        }
+      },
+      historyForNormal
+    );
 
-      // 计算 diff 并显示高亮
-      const diffResult = computeDiff(originalContent, aiContent);
-      await sendToParent({
-        type: MESSAGE_TYPE.APPLY_DIFF_HIGHLIGHT,
-        payload: { inputType: intent.inputType, diffResult },
-      });
-
-      addAIMessage(`✅ 已应用到「${label}」，请在左侧编辑器中查看。绿色=新增行，红色=删除行。`);
-    }
+    if (!normalContent) return;
   }
 
   /**
@@ -1158,6 +1189,275 @@
     }
   }
 
+  // ========== 快捷模板 ==========
+
+  const PROMPT_TEMPLATES = {
+    poetry: [
+      {
+        id: 'poetry-rap',
+        name: '国风 × 说唱',
+        desc: '保留意象，融入说唱节奏与押韵',
+        text: `你是一位精通中国传统诗词与现代说唱的跨界创作人。请根据我提供的古诗词，创作一首国风说唱风格的歌词。
+
+创作规则：
+- 保留原诗词的核心意象与情感基调，忽略虚词语气词
+- 句式讲究对仗，节奏朗朗上口，押韵自然
+- 融入现代说唱的流动感，但维持古典美感
+- 允许扩展原诗词意境，不偏离主题
+- 结构：主歌（叙事铺垫）→ 副歌（情感爆发）→ 主歌 → 副歌 → outro
+
+请直接输出以下格式：
+
+=== 风格描述 ===
+[对本首歌的风格定位说明，30字以内]
+
+=== 歌词 ===
+[完整歌词，标注【主歌】【副歌】【Outro】等结构]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的古诗词如下：
+{{请在此粘贴古诗词内容}}`,
+      },
+      {
+        id: 'poetry-xiqu',
+        name: '古韵 × 戏腔',
+        desc: '戏曲叙事结构，起承转合，典雅对偶',
+        text: `你是一位融合传统戏曲与现代国风流行的音乐创作专家。请根据我提供的古诗词，创作一首古风戏腔风格的歌词。
+
+创作规则：
+- 以诗词中最具画面感的意象作为歌词核心意象
+- 采用戏曲叙事结构：起（铺陈）→ 承（深入）→ 转（峰回路转）→ 合（升华）
+- 语言典雅，大量使用四字格和对偶句
+- 保留原诗词最美的原句，可直接引用或化用
+- 设计专门的"戏腔段"，模拟戏曲唱腔语感，情感更戏剧化
+
+请直接输出以下格式：
+
+=== 风格描述 ===
+[风格定位，30字以内]
+
+=== 歌词 ===
+[完整歌词，标注【主歌A】【主歌B】【副歌】【戏腔段】等]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的古诗词如下：
+{{请在此粘贴古诗词内容}}`,
+      },
+      {
+        id: 'poetry-story',
+        name: '诗词 × 故事融合',
+        desc: '先构建与诗词契合的故事，再交织入歌词',
+        text: `你是一位擅长以古诗词为灵感进行叙事创作的词曲人。请根据我提供的古诗词，先构建一个与之意境契合的故事，再将故事与诗词交织融合成歌词。
+
+创作规则：
+- 从诗词中提炼人物处境、时代背景和情感核心
+- 构建一个具体的叙事场景（有人物、有事件、有情感转折）
+- 歌词将故事叙述与诗词意象交替呈现，相互映衬
+- 原诗词最美的句子直接引用或保留在副歌的高光位置
+- 结构完整：铺垫 → 矛盾 → 高潮 → 余韵
+
+请按以下格式输出：
+
+=== 故事设定 ===
+[60字以内：人物、时代、情感走向]
+
+=== 风格描述 ===
+[风格定位，30字以内]
+
+=== 歌词 ===
+[完整歌词]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的古诗词如下：
+{{请在此粘贴古诗词内容}}`,
+      },
+    ],
+
+    prose: [
+      {
+        id: 'prose-lovesong',
+        name: '散文 × 情歌',
+        desc: '保留散文温度，转化为细腻流行情歌',
+        text: `你是一位将文学散文转化为流行音乐的创作人。请根据我提供的散文片段，创作一首情感细腻的流行情歌歌词。
+
+创作规则：
+- 提炼散文中最动人的情感核心与关键意象
+- 将散文的长句转化为简洁有力的歌词语言
+- 保持原散文的情绪温度，不过度煽情
+- 散文中最美的句子可直接化用进副歌
+- 节奏感强，易于谱曲，有明显的主歌/副歌情感落差
+
+请直接输出以下格式：
+
+=== 风格描述 ===
+[风格定位，30字以内]
+
+=== 歌词 ===
+[完整歌词，标注【主歌】【副歌】]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的散文片段如下：
+{{请在此粘贴散文内容}}`,
+      },
+      {
+        id: 'prose-ambient',
+        name: '散文 × 氛围感',
+        desc: '意象堆叠，沉浸式，偏民谣/indie风格',
+        text: `你是一位专注于氛围感音乐创作的词人，风格接近民谣、indie folk 或后摇的文学性。请根据我提供的散文片段，创作一首意境深远、画面感极强的氛围歌词。
+
+创作规则：
+- 重点提炼散文中的环境描写、感官意象（光线、气味、声音、触感）
+- 歌词可以更诗化、抽象，不必每句都叙事
+- 允许大量意象堆叠，用具体细节营造沉浸感
+- 情感不外露，藏在意象之中，让听众自行感受
+- 语言有克制的美感，不华丽不空洞
+
+请直接输出以下格式：
+
+=== 风格描述 ===
+[风格定位，30字以内]
+
+=== 歌词 ===
+[完整歌词]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的散文片段如下：
+{{请在此粘贴散文内容}}`,
+      },
+    ],
+
+    novel: [
+      {
+        id: 'novel-theme',
+        name: '小说 × 主题曲',
+        desc: '提炼核心主题，独立成立的主题曲',
+        text: `你是一位专业的影视/小说配乐创作人。请根据我提供的小说内容，创作一首契合该小说气质的主题曲歌词。
+
+创作规则：
+- 提炼小说的核心主题、情感基调和人物关系
+- 歌词须能独立成立，脱离小说背景也能打动人
+- 保留小说中最有张力的意象或金句，化用进副歌
+- 风格须与小说类型匹配（古风/现代/奇幻/悬疑等）
+- 结构上有电影感：引子 → 主歌（铺垫） → 副歌（爆发） → 桥段（转折） → 尾声
+
+请直接输出以下格式：
+
+=== 风格描述 ===
+[小说类型与歌曲风格定位，40字以内]
+
+=== 歌词 ===
+[完整歌词]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的小说内容如下：
+{{请在此粘贴小说段落（建议500字以内的关键场景）}}`,
+      },
+      {
+        id: 'novel-character',
+        name: '小说 × 角色视角',
+        desc: '选最有张力的角色，以第一人称写心声',
+        text: `你是一位擅长角色内心创作的音乐人。请根据我提供的小说内容，选取其中最具戏剧张力的角色，以该角色的第一人称视角创作一首情感真实的歌词。
+
+创作规则：
+- 先判断最适合演唱的角色（说明理由）
+- 以该角色的内心独白或情感宣泄为歌词主线
+- 保留角色在小说中标志性的语气和情感特征
+- 情感有层次：压抑 → 挣扎 → 爆发 → 释然（或崩溃）
+- 允许结合小说情节进行戏剧性的二次创作，但不改变角色核心性格
+
+请按以下格式输出：
+
+=== 演唱角色 ===
+[角色名 + 选择理由（一句话）]
+
+=== 风格描述 ===
+[风格定位，30字以内]
+
+=== 歌词 ===
+[完整歌词，第一人称]
+
+=== 歌曲名称 ===
+[建议歌名]
+
+用户提供的小说内容如下：
+{{请在此粘贴小说段落（建议500字以内的关键场景）}}`,
+      },
+    ],
+  };
+
+  let currentTemplateCat = 'poetry';
+  let templatePanelOpen = false;
+
+  function renderTemplateList(cat) {
+    if (!dom.templateList) return;
+    const list = PROMPT_TEMPLATES[cat] || [];
+    dom.templateList.innerHTML = list.map((t) => `
+      <button class="tmpl-btn" data-id="${t.id}">
+        <div class="tmpl-btn-name">${t.name}</div>
+        <div class="tmpl-btn-desc">${t.desc}</div>
+      </button>
+    `).join('');
+
+    dom.templateList.querySelectorAll('.tmpl-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const allTemplates = Object.values(PROMPT_TEMPLATES).flat();
+        const tmpl = allTemplates.find((t) => t.id === id);
+        if (!tmpl || !dom.chatInput) return;
+        dom.chatInput.value = tmpl.text;
+        // 选中占位符，让用户直接替换
+        const phStart = tmpl.text.indexOf('{{');
+        const phEnd   = tmpl.text.indexOf('}}') + 2;
+        if (phStart !== -1) {
+          dom.chatInput.focus();
+          dom.chatInput.setSelectionRange(phStart, phEnd);
+        } else {
+          dom.chatInput.focus();
+        }
+        // 关闭模板面板
+        toggleTemplatePanel(false);
+      });
+    });
+  }
+
+  function toggleTemplatePanel(forceState) {
+    templatePanelOpen = forceState !== undefined ? forceState : !templatePanelOpen;
+    if (dom.templatePanel) {
+      dom.templatePanel.style.display = templatePanelOpen ? 'flex' : 'none';
+    }
+    if (dom.btnTemplate) {
+      dom.btnTemplate.style.borderColor = templatePanelOpen ? 'var(--accent)' : '';
+      dom.btnTemplate.style.color = templatePanelOpen ? 'var(--accent)' : '';
+    }
+    if (templatePanelOpen) renderTemplateList(currentTemplateCat);
+  }
+
+  function newConversation() {
+    state.chatHistory = [];
+    // 清除聊天 UI，只保留欢迎消息
+    dom.chatMessages.innerHTML = `
+      <div class="message ai">
+        <div class="message-avatar">AI</div>
+        <div class="message-content">
+          <p>新对话已开始。历史记录已清除。</p>
+          <p>直接描述你的创作需求即可。</p>
+        </div>
+      </div>`;
+    showChatPanel();
+  }
+
   function showChatPanel() {
     dom.diffPanel.style.display = 'none';
     dom.chatPanel.style.display = 'flex';
@@ -1179,7 +1479,7 @@
   function toggleConfig() {
     state.configExpanded = !state.configExpanded;
     dom.configBody.style.display = state.configExpanded ? 'block' : 'none';
-    dom.configToggle.textContent = state.configExpanded ? '收起 ▲' : '展开 ▼';
+    dom.configToggle.textContent = state.configExpanded ? '▼' : '▶';
     if (state.configExpanded) {
       dom.apiConfig.classList.remove('config-unconfigured');
     }
@@ -1237,6 +1537,42 @@
     });
     dom.btnClose.addEventListener('click', () => {
       window.parent.postMessage({ type: MESSAGE_TYPE.TOGGLE_SIDEBAR }, '*');
+    });
+    dom.btnNewChat.addEventListener('click', newConversation);
+
+    // 输入框顶部拖拽手柄 — 向上拖拽增加高度
+    const chatResizeHandle = document.getElementById('chat-resize-handle');
+    if (chatResizeHandle && dom.chatInput) {
+      chatResizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        const startY = e.clientY;
+        const startHeight = dom.chatInput.offsetHeight;
+        chatResizeHandle.classList.add('dragging');
+
+        const onMove = (ev) => {
+          const delta = startY - ev.clientY;
+          const newH = Math.min(window.innerHeight * 0.6, Math.max(60, startHeight + delta));
+          dom.chatInput.style.height = newH + 'px';
+        };
+        const onUp = () => {
+          chatResizeHandle.classList.remove('dragging');
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    }
+
+    // 模板面板
+    dom.btnTemplate.addEventListener('click', () => toggleTemplatePanel());
+    dom.templateTabs.addEventListener('click', (e) => {
+      const tab = e.target.closest('.tmpl-tab');
+      if (!tab) return;
+      currentTemplateCat = tab.dataset.cat;
+      dom.templateTabs.querySelectorAll('.tmpl-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderTemplateList(currentTemplateCat);
     });
     // 清除选中文本
     if (dom.selectionClear) {

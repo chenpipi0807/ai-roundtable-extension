@@ -108,7 +108,7 @@ const DEFAULT_SETTINGS = {
 };
 
 /** 侧边栏宽度 */
-const SIDEBAR_WIDTH = 380;
+const SIDEBAR_WIDTH = 520;
 
 /** 侧边栏 z-index */
 const SIDEBAR_Z_INDEX = 999999;

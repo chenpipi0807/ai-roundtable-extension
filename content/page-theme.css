@@ -1,0 +1,207 @@
+/* ============================================================
+   天音 AI 创作页 — VS Code 暗色主题注入
+   ============================================================ */
+
+/* ─── 为两侧固定面板留出空间 ─── */
+/* 左侧版本历史 160px，右侧 AI 助手 520px */
+/* 只在 body 上加 padding，避免 html+body 双重叠加导致内容区过窄 */
+html {
+  background: #1e1e1e !important;
+  color: #cccccc !important;
+}
+body {
+  background: #1e1e1e !important;
+  color: #cccccc !important;
+  padding-left: 160px !important;
+  padding-right: 528px !important;
+  box-sizing: border-box !important;
+}
+
+/* 顶部固定导航栏也留出右侧空间 */
+header,
+nav,
+[role="banner"],
+[role="navigation"] {
+  padding-right: 528px !important;
+  box-sizing: border-box !important;
+}
+
+/* banner / 顶部导航也要跟着偏移 */
+body > *:not(#tianyin-sidebar-host):not(#tianyin-version-host) {
+  box-sizing: border-box;
+}
+
+main,
+[role="main"] {
+  background: #1e1e1e !important;
+  color: #cccccc !important;
+  max-width: none !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* ─── 消除 section 卡片之间的间隔，让 box 接上 ─── */
+/* 尝试覆盖 flex/grid gap 和 margin，多级都覆盖 */
+main,
+main > div,
+main > div > div {
+  gap: 0 !important;
+  row-gap: 0 !important;
+}
+
+/* 相邻 section 之间去掉 margin，用细分割线代替 */
+main > div + div,
+main > div > div + div {
+  margin-top: 0 !important;
+  border-top: 1px solid #3c3c3c !important;
+}
+
+/* 去掉每个 section 自带的下外边距 */
+main > div,
+main > div > div {
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* ─── 强制所有文字可见（高对比度覆盖） ─── */
+main *,
+body > div:not(#tianyin-sidebar-host) > * {
+  color: #cccccc;
+}
+
+/* 段落标题（开始创作 / 风格 / 歌词 / 歌曲名称）*/
+main h1, main h2, main h3, main h4, main h5, main h6,
+main [class*="title"], main [class*="heading"],
+main [class*="label"], main [class*="section"],
+main span, main p, main div {
+  color: #cccccc !important;
+}
+
+/* ─── 链接 ─── */
+main a, main a:visited {
+  color: #4daafc !important;
+}
+main a:hover { color: #75beff !important; }
+
+/* ─── 卡片/面板背景 ─── */
+main > div,
+main > section,
+main > article {
+  background: #252526 !important;
+}
+
+/* ─── 输入框 & 文本域 ─── */
+main textarea,
+main input[type="text"],
+main input[type="search"],
+main input:not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="checkbox"]):not([type="range"]) {
+  background: #3c3c3c !important;
+  color: #d4d4d4 !important;
+  border: 1px solid #555 !important;
+  border-radius: 2px !important;
+  caret-color: #d4d4d4 !important;
+}
+
+main textarea:focus,
+main input:focus {
+  border-color: #007fd4 !important;
+  outline: 1px solid #007fd4 !important;
+  box-shadow: none !important;
+}
+
+main textarea::placeholder,
+main input::placeholder {
+  color: #6d6d6d !important;
+  opacity: 1 !important;
+}
+
+/* ─── 风格选择芯片（label / 单选按钮标签） ─── */
+main label {
+  color: #cccccc !important;
+}
+
+/* ─── 已选中的风格芯片 ─── */
+main [class*="active"] label,
+main label[class*="active"],
+main [class*="checked"] label,
+main [class*="selected"] label {
+  color: #ffffff !important;
+}
+
+/* ─── 下拉选择 ─── */
+main select {
+  background: #3c3c3c !important;
+  color: #cccccc !important;
+  border: 1px solid #555 !important;
+  border-radius: 2px !important;
+}
+
+/* ─── 分割线/边框 ─── */
+main hr { border-color: #3c3c3c !important; }
+
+/* ─── 滚动条 ─── */
+main ::-webkit-scrollbar { width: 6px; height: 6px; }
+main ::-webkit-scrollbar-track { background: #1e1e1e; }
+main ::-webkit-scrollbar-thumb { background: #424242; border-radius: 3px; }
+main ::-webkit-scrollbar-thumb:hover { background: #5a5a5a; }
+
+/* ============================================================
+   天音 AI — 锁定按钮样式
+   ============================================================ */
+.tianyin-lock-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 20;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.85);
+  border: 1px solid #555;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #9d9d9d;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.tianyin-lock-btn:hover {
+  border-color: #007acc;
+  color: #4daafc;
+  background: rgba(0, 122, 204, 0.15);
+}
+
+.tianyin-lock-btn.locked {
+  border-color: #007acc;
+  color: #007acc;
+  background: rgba(0, 122, 204, 0.2);
+}
+
+/* 锁定时输入框容器顶部边框变蓝 */
+.tianyin-cm-editor.tianyin-field-locked {
+  border-color: #007acc !important;
+  border-top: 2px solid #007acc !important;
+}
+
+/* 锁定提示标签 */
+.tianyin-locked-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 10px;
+  padding: 1px 6px;
+  background: rgba(0, 122, 204, 0.25);
+  color: #4daafc;
+  border-bottom-right-radius: 2px;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+/* ─── 不影响我们的侧边栏 ─── */
+#tianyin-sidebar-host,
+#tianyin-sidebar-host * {
+  all: revert !important;
+}

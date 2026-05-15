@@ -66,6 +66,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 const messageHandlers = {
+  /** 下载作品音频（绕过 CORS，直接用 chrome.downloads） */
+  DOWNLOAD_AUDIO: async (message) => {
+    const { url, filename } = message.payload || {};
+    if (!url) return { success: false, error: 'no url' };
+    await chrome.downloads.download({
+      url,
+      filename: filename || 'AI歌曲.mp3',
+      saveAs: false,
+    });
+    return { success: true };
+  },
+
   /** 获取设置 */
   [MESSAGE_TYPE.GET_SETTINGS]: async (message) => {
     const result = await chrome.storage.local.get([
@@ -191,7 +203,7 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(async (message) => {
     if (message.type !== 'start_stream') return;
 
-    const { systemPrompt, userPrompt, model, temperature, maxTokens } = message.payload;
+    const { systemPrompt, userPrompt, messages: incomingMessages, model, temperature, maxTokens } = message.payload;
 
     // 获取 API Key
     const result = await chrome.storage.local.get(STORAGE_KEYS.API_KEY);
@@ -205,12 +217,14 @@ chrome.runtime.onConnect.addListener((port) => {
     }
 
     const url = `${DEEPSEEK_CONFIG.BASE_URL}${DEEPSEEK_CONFIG.CHAT_ENDPOINT}`;
+    // 优先使用调用方传入的完整 messages（多轮对话），否则构建单轮
+    const apiMessages = incomingMessages || [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
     const body = {
       model: model || DEEPSEEK_CONFIG.DEFAULT_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
+      messages: apiMessages,
       temperature: temperature ?? DEEPSEEK_CONFIG.TEMPERATURE,
       max_tokens: maxTokens ?? DEEPSEEK_CONFIG.MAX_TOKENS,
       stream: true,

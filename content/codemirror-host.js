@@ -1,19 +1,18 @@
 // ============================================================
 // 天音 AI 创作助手 — CodeMirror 6 编辑器宿主
 // 负责将天音页面的原生 textarea 替换为 CodeMirror 6 编辑器
-// 通过 fetch() + eval() 加载 IIFE 打包文件（避免 Chrome content script 的 import() 限制）
+// CodeMirror bundle 由 manifest.json 中的 content_scripts 预加载，
+// 此处仅负责按需返回模块引用
 // ============================================================
 
 /**
- * CodeMirror 模块引用（通过 eval() 执行 IIFE 包后设置 window.__tianyinCodeMirror）
+ * CodeMirror 模块引用（由 manifest 预加载的 IIFE 包设置 window.__tianyinCodeMirror）
  */
 let cmModule = null;
 let cmLoadingPromise = null;
 
 /**
  * 加载 CodeMirror IIFE 包到 content script 上下文
- * Chrome content script 无法使用 dynamic import() 加载 chrome-extension:// 的 ESM 模块，
- * 因此使用 IIFE 格式 + fetch() + eval() 的方式在 content script 的隔离世界中执行。
  * @returns {Promise<Object>} CodeMirror 模块对象
  */
 async function ensureCodeMirror() {
@@ -21,66 +20,28 @@ async function ensureCodeMirror() {
   if (cmLoadingPromise) return cmLoadingPromise;
 
   cmLoadingPromise = new Promise((resolve, reject) => {
-    // 如果已经加载完成
+    // 如果已加载（manifest 预加载的 content script 已设置）
     if (window.__tianyinCodeMirror) {
       cmModule = window.__tianyinCodeMirror;
+      console.log('[天音助手] CodeMirror 6 已加载');
       resolve(cmModule);
       return;
     }
 
-    const url = chrome.runtime.getURL('lib/codemirror/codemirror-bundle.js');
-
-    fetch(url)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.text();
-      })
-      .then((code) => {
-        // 在 content script 的隔离世界中执行 IIFE 代码
-        // 这会设置 window.__tianyinCodeMirror
-        try {
-          // 使用 Function 构造函数来执行（比 eval 更安全，在严格模式下）
-          const executeCode = new Function(code);
-          executeCode();
-        } catch (evalError) {
-          console.error('[天音助手] CodeMirror IIFE 执行失败:', evalError);
-          // 尝试直接 eval 作为 fallback
-          try {
-            (0, eval)(code);
-          } catch (evalError2) {
-            reject(new Error('CodeMirror IIFE 执行失败: ' + evalError2.message));
-            return;
-          }
-        }
-
-        // 检查是否加载成功
-        if (window.__tianyinCodeMirror) {
-          cmModule = window.__tianyinCodeMirror;
-          console.log('[天音助手] CodeMirror 6 加载成功');
-          resolve(cmModule);
-        } else {
-          // 等待一小段时间
-          let attempts = 0;
-          const checkInterval = setInterval(() => {
-            attempts++;
-            if (window.__tianyinCodeMirror) {
-              clearInterval(checkInterval);
-              cmModule = window.__tianyinCodeMirror;
-              console.log('[天音助手] CodeMirror 6 加载成功（延迟检测）');
-              resolve(cmModule);
-            } else if (attempts > 100) {
-              clearInterval(checkInterval);
-              reject(new Error('CodeMirror IIFE 加载后未找到 window.__tianyinCodeMirror'));
-            }
-          }, 50);
-        }
-      })
-      .catch((fetchError) => {
-        console.error('[天音助手] CodeMirror 包加载失败:', fetchError);
-        reject(fetchError);
-      });
+    // 回退：轮询等待（极端情况下 content script 加载时序问题）
+    let attempts = 0;
+    const checkInterval = setInterval(() => {
+      attempts++;
+      if (window.__tianyinCodeMirror) {
+        clearInterval(checkInterval);
+        cmModule = window.__tianyinCodeMirror;
+        console.log('[天音助手] CodeMirror 6 加载成功（延迟）');
+        resolve(cmModule);
+      } else if (attempts > 100) {
+        clearInterval(checkInterval);
+        reject(new Error('CodeMirror 模块未加载：window.__tianyinCodeMirror 未设置'));
+      }
+    }, 50);
   });
 
   return cmLoadingPromise;

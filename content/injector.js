@@ -23,6 +23,13 @@
    */
   async function init() {
     if (initialized) return;
+
+    // 仅在创作页面运行（my-creation 页面无目标输入框，无需创建编辑器）
+    if (!location.pathname.includes('song-generate')) {
+      console.log('[天音助手] 非创作页面，跳过注入器初始化');
+      return;
+    }
+
     initialized = true;
 
     console.log('[天音助手] 注入器已启动');
@@ -126,6 +133,7 @@
         });
 
         editorInstances[type] = result;
+        injectLockButton(result.container, type);
         inputElement.dataset.tianyinCmCreated = 'true';
         console.log(`[天音助手] CodeMirror 编辑器已创建: ${type}`);
       } catch (error) {
@@ -233,6 +241,74 @@
     return getInputValue(inputType);
   }
 
+  // ────────────────────────────────────────────────
+  // 字段锁定状态（inputType → boolean）
+  // ────────────────────────────────────────────────
+  const lockState = {};
+
+  const LOCK_ICON_OPEN = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+  </svg>`;
+
+  const LOCK_ICON_CLOSED = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+  </svg>`;
+
+  const FIELD_LABELS = {
+    songIdea: '风格描述',
+    lyrics: '歌词',
+    songName: '歌曲名称',
+  };
+
+  /**
+   * 在 CodeMirror 容器右上角注入锁定按钮
+   * @param {HTMLElement} container - tianyin-cm-editor 容器
+   * @param {string} inputType
+   */
+  function injectLockButton(container, inputType) {
+    if (container.querySelector('.tianyin-lock-btn')) return;
+
+    // 确保容器是相对定位
+    container.style.position = 'relative';
+
+    const btn = document.createElement('button');
+    btn.className = 'tianyin-lock-btn';
+    btn.title = '锁定此字段（锁定后 AI 不会修改此内容）';
+    btn.innerHTML = LOCK_ICON_OPEN;
+
+    const badge = document.createElement('div');
+    badge.className = 'tianyin-locked-badge';
+    badge.textContent = '已锁定';
+    badge.style.display = 'none';
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isLocked = !lockState[inputType];
+      lockState[inputType] = isLocked;
+
+      btn.innerHTML = isLocked ? LOCK_ICON_CLOSED : LOCK_ICON_OPEN;
+      btn.classList.toggle('locked', isLocked);
+      btn.title = isLocked
+        ? '已锁定（点击解锁）'
+        : '锁定此字段（锁定后 AI 不会修改此内容）';
+      container.classList.toggle('tianyin-field-locked', isLocked);
+      badge.style.display = isLocked ? 'block' : 'none';
+    });
+
+    container.appendChild(btn);
+    container.appendChild(badge);
+  }
+
+  /**
+   * 返回当前所有已锁定的字段列表
+   * @returns {string[]}
+   */
+  function getLockedFields() {
+    return Object.keys(lockState).filter((k) => lockState[k]);
+  }
+
   // 暴露全局 API 供 sidebar-host 和其他模块使用
   window.__tianyinInjector = {
     getEditorView,
@@ -241,6 +317,8 @@
     applyDiffHighlightToEditor,
     clearDiffHighlightFromEditor,
     getEditorInstances: () => editorInstances,
+    getLockedFields,
+    isFieldLocked: (type) => !!lockState[type],
   };
 
   // 页面加载完成后初始化

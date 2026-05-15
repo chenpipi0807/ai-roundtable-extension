@@ -8,20 +8,26 @@
 </head>
 <body>
   <div id="app">
-    <!-- 顶部工具栏 -->
+    <!-- 面板标题栏 (VS Code panel header style) -->
     <header class="toolbar">
       <div class="toolbar-left">
-        <span class="logo">🎵 天音助手</span>
+        <span class="logo">天音 AI 创作助手</span>
       </div>
       <div class="toolbar-center">
-        <button class="nav-btn" id="btn-nav-create" title="跳转创作页面">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="nav-btn" id="btn-new-chat" title="新建对话（清空历史）">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span>新建</span>
+        </button>
+        <button class="nav-btn" id="btn-nav-create" title="跳转创作页面">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15.232 5.232l3.536 3.536M9 13l-4 1 1-4 9.5-9.5a2 2 0 012.828 2.828L9 13z"></path>
           </svg>
           <span>创作</span>
         </button>
         <button class="nav-btn" id="btn-nav-results" title="跳转创作结果页面">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"></path>
             <rect x="9" y="3" width="6" height="4" rx="1"></rect>
             <path d="M9 14l2 2 4-4"></path>
@@ -31,7 +37,7 @@
       </div>
       <div class="toolbar-right">
         <button class="toolbar-btn" id="btn-close" title="收起侧边栏">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -39,18 +45,23 @@
       </div>
     </header>
 
-    <!-- API 配置区（始终可见，未配置时突出显示） -->
+    <!-- API 配置区 (VS Code collapsible section) -->
     <div class="api-config" id="api-config">
       <div class="config-header" id="config-header">
-        <span class="config-title">🔑 API 配置</span>
-        <span class="config-toggle" id="config-toggle">收起 ▲</span>
+        <span class="config-toggle" id="config-toggle">▼</span>
+        <span class="config-title">API 配置</span>
       </div>
       <div class="config-body" id="config-body">
         <div class="form-group">
           <label for="api-key">DeepSeek API Key</label>
           <div class="input-with-btn">
             <input type="password" id="api-key" placeholder="sk-..." class="form-input" />
-            <button class="btn-sm" id="btn-toggle-key-visibility">👁</button>
+            <button class="btn-sm" id="btn-toggle-key-visibility">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </div>
           <p class="form-hint">
             在 <a href="https://platform.deepseek.com/" target="_blank">DeepSeek 开放平台</a> 获取
@@ -64,7 +75,7 @@
           </select>
         </div>
         <div class="form-actions">
-          <button class="btn btn-primary" id="btn-save-settings">保存设置</button>
+          <button class="btn btn-primary" id="btn-save-settings">保存</button>
           <button class="btn" id="btn-test-key">测试连接</button>
         </div>
         <div class="form-status" id="settings-status"></div>
@@ -77,20 +88,31 @@
       <div class="chat-panel" id="chat-panel">
         <div class="chat-messages" id="chat-messages">
           <div class="message ai">
-            <div class="message-avatar">🤖</div>
+            <div class="message-avatar">AI</div>
             <div class="message-content">
-              <p>你好！我是天音 AI 创作助手 🎵</p>
-              <p>直接在下方聊天输入框中描述你的创作需求，例如：</p>
+              <p>你好！我是天音 AI 创作助手</p>
+              <p>在下方输入框描述你的创作需求，例如：</p>
               <p>
-                • <strong>"写一首关于夏天的流行歌曲"</strong> → 生成歌词<br>
+                • <strong>"写一首关于夏天的流行歌"</strong> → 生成歌词<br>
                 • <strong>"帮我起个歌名"</strong> → 生成歌曲名称<br>
-                • <strong>"写一段古风风格的描述"</strong> → 生成风格描述
+                • <strong>"古风风格的描述"</strong> → 生成风格描述
               </p>
-              <p>AI 建议会以 Split Diff 左右分栏展示在左侧页面输入框中，你可以逐段接受或拒绝。</p>
+              <p>AI 建议以 Split Diff 形式展示在左侧输入框，可逐段接受或拒绝。</p>
             </div>
           </div>
         </div>
+        <!-- 快捷模板面板 -->
+        <div class="template-panel" id="template-panel" style="display:none;">
+          <div class="template-tabs" id="template-tabs">
+            <button class="tmpl-tab active" data-cat="poetry">古诗词</button>
+            <button class="tmpl-tab" data-cat="prose">散文</button>
+            <button class="tmpl-tab" data-cat="novel">小说</button>
+          </div>
+          <div class="template-list" id="template-list"></div>
+        </div>
+
         <div class="chat-input-area">
+          <div class="chat-textarea-resize-handle" id="chat-resize-handle" title="拖拽调整输入框高度"></div>
           <div class="selection-info" id="selection-info" style="display: none;">
             <span class="selection-text" id="selection-text"></span>
             <button class="selection-clear" id="selection-clear" title="清除选中">✕</button>
@@ -98,14 +120,17 @@
           <textarea
             class="chat-input"
             id="chat-input"
-            placeholder="输入你的创作需求..."
-            rows="2"
+            placeholder="输入你的创作需求，或点击「模板」快速开始..."
+            rows="3"
           ></textarea>
-          <button class="btn btn-primary send-btn" id="btn-send">发送</button>
+          <div class="chat-input-footer">
+            <button class="btn btn-sm" id="btn-template" title="快捷模板">模板</button>
+            <button class="btn btn-primary send-btn" id="btn-send">发送</button>
+          </div>
         </div>
       </div>
 
-      <!-- Diff 审核视图（备用查看功能） -->
+      <!-- Diff 审核视图 -->
       <div class="diff-panel" id="diff-panel" style="display: none;">
         <div class="diff-header">
           <div class="diff-title">
@@ -113,16 +138,16 @@
             <span class="diff-badge" id="diff-badge">0 处变更</span>
           </div>
           <div class="diff-actions">
-            <button class="btn btn-sm btn-success" id="btn-accept-all">✅ 全部接受并应用</button>
-            <button class="btn btn-sm btn-danger" id="btn-reject-all">❌ 全部拒绝</button>
+            <button class="btn btn-success btn-sm" id="btn-accept-all">全部接受</button>
+            <button class="btn btn-danger btn-sm" id="btn-reject-all">全部拒绝</button>
           </div>
         </div>
         <div class="diff-view" id="diff-view">
           <!-- Split Diff 由 JS 动态渲染 -->
         </div>
         <div class="diff-footer">
-          <button class="btn btn-sm" id="btn-apply-diff" style="display: none;">📥 仅应用已接受的变更</button>
-          <button class="btn" id="btn-back-to-chat">← 返回聊天</button>
+          <button class="btn btn-sm" id="btn-apply-diff" style="display: none;">应用已接受</button>
+          <button class="btn" id="btn-back-to-chat">← 返回</button>
         </div>
       </div>
     </div>
