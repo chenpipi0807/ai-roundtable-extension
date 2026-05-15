@@ -81,6 +81,7 @@
 
   // ─── 处理捕获到的 URL ─────────────────────────────────────────────────
   function handle(songId, url, rowId) {
+    url = url.replace('http://', 'https://');
     urlMap.set(songId, url);
     // 解除等待
     for (const key of [rowId, songId]) {
