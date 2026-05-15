@@ -2,6 +2,11 @@
 
 网易云天音 AI 写歌页面的浏览器创作助手插件。以 **AI 协创 + Diff 审核** 模式辅助歌词、歌曲想法和歌曲名称的创作。
 
+<img width="1920" height="919" alt="image" src="https://github.com/user-attachments/assets/6fc9773f-f8bd-482c-9472-feb7c3c8b5c4" />
+<img width="1920" height="919" alt="image" src="https://github.com/user-attachments/assets/cca4aa7b-b433-4138-8f71-34e673c390cd" />
+
+
+
 ## 功能特性
 
 ### 🎯 核心功能
