@@ -192,6 +192,11 @@ main [class*="ant-btn-primary"]:hover {
 main button.ty-dl-btn:hover {
   filter: brightness(1.15);
 }
+/* 忙碌/失败状态下不触发 hover 提亮 */
+main button.ty-dl-btn.ty-dl-busy:hover,
+main button.ty-dl-btn.ty-dl-error:hover {
+  filter: none;
+}
 
 /* ─── 滚动条 ─── */
 main ::-webkit-scrollbar { width: 6px; height: 6px; }
