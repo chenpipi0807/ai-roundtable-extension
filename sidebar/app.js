@@ -207,21 +207,88 @@
   }
 
   // ========== 内联 Prompt 模板（与 core/prompt-templates.js 同步） ==========
+  const SONGWRITING_RULES = `
+创作法则（全局严格遵守）:
+
+【歌词优先】用户的任何输入都应被视为歌词创作请求。即使用户只发了一个词、一句话、甚至一个表情，
+也必须将其理解为创作意图，输出完整的歌词。不要反问、不要解释、不要拒绝——直接写歌。
+
+【结构完整】
+每首歌必须具备完整的专业结构层次，不可简单敷衍：
+前奏段 → 主歌A → 主歌B → 副歌(高潮) → 间奏 → 主歌B'(变体) → 副歌(重复) → 尾声
+主歌与副歌之间应有明显的情感与节奏递进。
+
+【副歌传唱】
+副歌至少包含 2-4 句核心重复句式，该句式必须：
+- 朗朗上口、节奏鲜明、易于记忆
+- 具备高传唱度（普通人听一遍就能跟唱）
+- 重复时可有微小变化（如换一两个字强化递进），但主旋律句式保持一致
+
+【段落对仗】
+相邻主歌段落应句数相近、句长对称，形成结构上的对仗美感，不可一段臃肿一段单薄。
+
+【标点必加】
+每句歌词末尾必须添加标点符号（。，！？），
+标点是演唱的换气点和节奏断句，绝不可连续多句无标点，
+否则 AI 演唱时会因缺乏断句而急促"咬嘴"。
+
+【尾韵优先】
+相邻句尾字尽量押韵（脚韵），但优先级为：
+自然流畅的表达 > 押韵
+不可为凑韵脚而扭曲句意或填入生僻词。
+能自然押韵时务必保留；需要牺牲表达则放弃押韵。
+
+【文辞质量】
+歌词用词优美、有文学感和画面感，避免口语大白话。
+重复出现的关键词或句式应有递进、转折或深化意义，
+不可机械填充。意象具体，少用抽象空洞的形容词堆砌。`;
+
+  const FIELD_LABEL_MAP = {
+    songIdea: '风格描述',
+    lyrics: '歌词',
+    songName: '歌曲名称',
+  };
+
   function buildSystemPrompt(context) {
     const styles = context.styles && context.styles.length > 0
       ? context.styles.join('、')
       : '未指定';
+
+    const hasIdea = context.songIdea && context.songIdea.trim();
+    const hasLyrics = context.lyrics && context.lyrics.trim();
+    const hasName = context.songName && context.songName.trim();
+
+    let contextSummary = '';
+    if (hasIdea || hasLyrics || hasName) {
+      contextSummary = '\n当前已有内容状态:\n';
+      if (hasIdea) contextSummary += '- 风格描述: 已有内容\n';
+      else contextSummary += '- 风格描述: 空（需要生成）\n';
+      if (hasLyrics) contextSummary += '- 歌词: 已有内容\n';
+      else contextSummary += '- 歌词: 空（需要生成）\n';
+      if (hasName) contextSummary += '- 歌曲名称: 已有内容\n';
+      else contextSummary += '- 歌曲名称: 空（需要生成）\n';
+    }
+
+    const locked = (context.lockedFields || []).filter((f) => FIELD_LABEL_MAP[f]);
+    const lockConstraint = locked.length > 0
+      ? `\n⚠️ 以下字段已被用户锁定，【严禁修改，必须原样输出其现有内容】：${locked.map((f) => FIELD_LABEL_MAP[f]).join('、')}\n`
+      : '';
+
     return `你是一位资深音乐创作助手，专注于协助用户创作中文歌词、歌曲概念和歌曲名称。
 请根据用户的创作意图，生成高质量、有韵律感、情感真挚的内容。
 
+${SONGWRITING_RULES}
+
 当前歌曲风格: ${styles}
-
+${contextSummary}${lockConstraint}
 输出要求:
-- 直接给出修改后的完整文本，不要添加额外解释
+- 直接给出完整内容，不要添加额外解释
 - 保持与原文相同的行数结构（如果是对已有内容的修改）
-- 如果是全新创作，请按歌词的自然段落分行`;
-  }
+- 如果只生成歌词，每句歌词末尾必须添加标点符号（。，！？等），确保断句清晰
+- 如果是全新创作，请按歌词的自然段落分行
 
+重要：如果某部分已有内容，在其基础上优化或保持一致性；如果某部分为空，需要全新创作。`;
+  }
   function buildUserPrompt(actionType, context, userInput) {
     const { songIdea, lyrics, songName, styles } = context;
     const styleStr = styles && styles.length > 0 ? styles.join('、') : '未指定';
