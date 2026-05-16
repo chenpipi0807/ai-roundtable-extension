@@ -967,7 +967,7 @@ ${contextSummary}${lockConstraint}
           dom.chatMessages.scrollTop = dom.chatMessages.scrollHeight;
         },
         // onDone: 流式完成，解析完整内容并一次性写入左侧编辑器
-        (fullContent) => {
+        async (fullContent) => {
           // 移除流式显示的消息
           if (streamMsgEl && streamMsgEl.parentNode) {
             streamMsgEl.parentNode.removeChild(streamMsgEl);
@@ -1008,7 +1008,10 @@ ${contextSummary}${lockConstraint}
           }
 
           if (writeTasks.length > 0) {
-            Promise.all(writeTasks);
+            // 顺序执行：先 APPLY_TO_INPUT 写入内容，再 APPLY_DIFF_HIGHLIGHT 打高亮
+            for (const task of writeTasks) {
+              await task;
+            }
           }
 
           const summary = `✅ 已生成并应用到 ${summaryParts.join('、')}`;
@@ -1016,7 +1019,7 @@ ${contextSummary}${lockConstraint}
           // 记录 AI 回复到 chatHistory
           state.chatHistory.push({ role: 'assistant', content: fullContent || summary });
         }
-      , historyForStream, 'json_object');
+      , historyForStream);
 
       if (!aiContent) return;
       return;
